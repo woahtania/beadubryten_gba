@@ -161,13 +161,12 @@ void sc_battle_complete() {
 		loadedUnits[0].isVisibleThisTurn = !loadedUnits[0].isVisibleThisTurn;
 		updateUnits();
 	}
-}
-
-void sc_battle_complete() {
-    if (key_is_down(KEY_START))
-    {
-        switchScene(1);
-    }
+	// Test: cycle turn between teams
+	if (key_hit(KEY_B)) {
+		startTurnFor((currentTeam + 1) % 3);
+		updateUnits();
+		updateFog();
+	}
 }
 
 void sc_battle_deconstruct() {}
