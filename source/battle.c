@@ -5,21 +5,21 @@ struct MUnit loadedUnits[MAX_UNITS * 3];
 int currentTeam;
 
 const struct Tile allTiles[12] = {
-    {TEAM_NONE, TYPE_LAND, BUFF_NONE,0, "Plains"},
-    {TEAM_NONE, TYPE_WATER, BUFF_NONE,0, "Sea"},
-    {TEAM_NONE, TYPE_AIR, BUFF_NONE,0, "Mountains"},
+    {TEAM_NONE, TYPE_LAND, BUFF_NONE, 0, "Plains"},
+    {TEAM_NONE, TYPE_WATER, BUFF_NONE, 0, "Sea"},
+    {TEAM_NONE, TYPE_AIR, BUFF_NONE, 0, "Mountains"},
 
-    {TEAM_ENGLAND, TYPE_LAND, BUFF_STRENGTH,1, "Castle"},
-    {TEAM_ENGLAND, TYPE_WATER, BUFF_SPEED,2, "River"},
-    {TEAM_ENGLAND, TYPE_AIR, BUFF_SIGHT,1, "Pennine"},
+    {TEAM_ENGLAND, TYPE_LAND, BUFF_STRENGTH, 1, "Castle"},
+    {TEAM_ENGLAND, TYPE_WATER, BUFF_SPEED, 2, "River"},
+    {TEAM_ENGLAND, TYPE_AIR, BUFF_SIGHT, 1, "Pennine"},
 
-    {TEAM_CYMRU, TYPE_LAND, BUFF_SPEED,1, "Valley"},
-    {TEAM_CYMRU, TYPE_WATER, BUFF_STRENGTH,1, "Waterfall"},
-    {TEAM_CYMRU, TYPE_AIR, BUFF_SIGHT,2, "Mountain Range"},
+    {TEAM_CYMRU, TYPE_LAND, BUFF_SPEED, 1, "Valley"},
+    {TEAM_CYMRU, TYPE_WATER, BUFF_STRENGTH, 1, "Waterfall"},
+    {TEAM_CYMRU, TYPE_AIR, BUFF_SIGHT, 2, "Mountain Range"},
 
-    {TEAM_SCOTLAND, TYPE_LAND, BUFF_SPEED,1, "Bog"},
-    {TEAM_SCOTLAND, TYPE_WATER, BUFF_SIGHT,1, "Loch"},
-    {TEAM_SCOTLAND, TYPE_AIR, BUFF_STRENGTH,2, "Highland"}};
+    {TEAM_SCOTLAND, TYPE_LAND, BUFF_SPEED, 1, "Bog"},
+    {TEAM_SCOTLAND, TYPE_WATER, BUFF_SIGHT, 1, "Loch"},
+    {TEAM_SCOTLAND, TYPE_AIR, BUFF_STRENGTH, 2, "Highland"}};
 
 const struct Unit allUnits[12] = {
     {"Y Ddraig Goch", TEAM_CYMRU, TYPE_AIR,
@@ -55,30 +55,33 @@ const struct Unit allUnits[12] = {
 
 void floodFillVisibleFrom(int x, int y)
 {
-    if(x < 0 || y < 0 || x >= MAP_W || y >= MAP_H)
+    if (x < 0 || y < 0 || x >= MAP_W || y >= MAP_H)
         return;
 
-    if (visibleMapTiles[(y*MAP_W)+x] == true) // if the tile is already visible return
-        return;                                              
+    if (visibleMapTiles[(y * MAP_W) + x] == true) // if the tile is already visible return
+        return;
 
-    visibleMapTiles[(y*MAP_W)+x] = true; // set this tile visible
+    visibleMapTiles[(y * MAP_W) + x] = true; // set this tile visible
 
     // recursively visit all tiles in a 4 way direction
-    floodFillVisibleFrom(x + 1, y); 
-    floodFillVisibleFrom(x - 1, y); 
+    floodFillVisibleFrom(x + 1, y);
+    floodFillVisibleFrom(x - 1, y);
     floodFillVisibleFrom(x, y + 1);
-    floodFillVisibleFrom(x, y - 1); 
+    floodFillVisibleFrom(x, y - 1);
 }
 
-void setTilevisible(int x, int y) {
-    if (x > 0 && x < MAP_W && y > 0 && y < MAP_H) {
+void setTilevisible(int x, int y)
+{
+    if (x >= 0 && x < MAP_W && y >= 0 && y < MAP_H)
+    {
         visibleMapTiles[(y * MAP_W) + x] = true;
     }
 }
 
 void calculateVisibleTiles(int team)
 {
-    for(int i = 0; i < MAP_H * MAP_W; i++){
+    for (int i = 0; i < MAP_H * MAP_W; i++)
+    {
         visibleMapTiles[i] = false;
     }
     for (int i = 0; i < MAX_UNITS * 3; i++)
@@ -87,28 +90,25 @@ void calculateVisibleTiles(int team)
         if (u.team == team)
         {
             int r = u.stats[BUFF_SIGHT];
-            int x = r;
-            int y = 0;
+            int x = loadedUnits[i].x;
+            int y = loadedUnits[i].y;
             int d = 0;
-            while (x >= y)
+            for (int a = 0; a <= r; a++)
             {
-                setTilevisible(loadedUnits[i].y + y, loadedUnits[i].x + x);
-                setTilevisible(loadedUnits[i].y - y, loadedUnits[i].x + x);
-                setTilevisible(loadedUnits[i].y + y, loadedUnits[i].x - x);
-                setTilevisible(loadedUnits[i].y - y, loadedUnits[i].x - x);
-                setTilevisible(loadedUnits[i].x + x, loadedUnits[i].y + y);
-                setTilevisible(loadedUnits[i].x - x, loadedUnits[i].y + y);
-                setTilevisible(loadedUnits[i].x + x, loadedUnits[i].y - y);
-                setTilevisible(loadedUnits[i].x - x, loadedUnits[i].y - y);
-                d += (2 * y + 1);
-                y++;
-                if (d >= 0)
+                for (int vx = a; vx >= 0; vx--)
                 {
-                    d += (-2 * x + 1);
-                    x--;
+                    for (int vy = r - a; vy >= 0; vy--)
+                    {
+                        setTilevisible(y + vy, x + vx);
+                        setTilevisible(y - vy, x + vx);
+                        setTilevisible(y + vy, x - vx);
+                        setTilevisible(y - vy, x - vx);
+                    }
                 }
+                int vx = a;
+                int vy = r - a;
             }
-            floodFillVisibleFrom(loadedUnits[i].x, loadedUnits[i].y);
+
         }
     }
     for (int i = 0; i < MAX_UNITS * 3; i++)
@@ -174,4 +174,15 @@ bool attackUnit(int unitID, int targetUnitID)
         return true;
     }
     return false;
+}
+
+void loadUnits(struct UnitSpawn *spawns)
+{
+    for (int i = 0; i < MAX_UNITS * 3; i++)
+    {
+        struct UnitSpawn us = *(spawns + i);
+        loadedUnits[i] = (struct MUnit){us.type, 8, 0, true, false, us.x, us.y};
+        // if(us.type == 2)
+        // return;
+    }
 }

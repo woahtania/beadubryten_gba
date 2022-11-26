@@ -7,6 +7,8 @@
 
 #include "sprites.h"
 
+#include "battlemap_data.h"
+
 // The actual count of tiles
 #define BATTLEMAP_TILES_LEN ((battlemapTilesLen/64) + 1)
 
@@ -75,6 +77,35 @@ void initMap() {
 	for (size_t i = 0; i < battlemapTilesLen/4; i++) {
 		*(tile + i) += (pal_len) + (pal_len<<8) + (pal_len<<16) + (pal_len<<24);
 	}
+}
+
+void sc_battle_init()
+{
+    REG_DISPCNT = DCNT_MODE1 | DCNT_BG0;
+	REG_BG0CNT = BG_CBB(0) | BG_SBB(30) | BG_8BPP | BG_REG_64x64;
+
+
+
+	// for(size_t i = 0; i < MAP_W * MAP_H; i++) {
+	// 	visibleMapTiles[i] = true;
+	// }
+
+	// for(size_t i = 0; i < 32; i++) {
+	// 	visibleMapTiles[i*MAP_W + 16] = false;
+	// }
+
+	loadMap();
+
+	struct MUnit unit = {1, 5, 5, false, false, 10, 10};
+	loadedUnits[0] = unit;
+	startTurnFor(TEAM_ENGLAND);
+
+	updateFog();
+}
+
+size_t tile2MapId(size_t tile_x, size_t tile_y) {
+	return (tile_y >=16 ? (32*64 + (tile_y*2 - 32)*32) : (tile_y * 64)) + 
+		(tile_x >= 16 ? (32*32 + (tile_x*2 - 32)) : tile_x*2);
 }
 
 void updateFog() {

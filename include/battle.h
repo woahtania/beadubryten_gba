@@ -22,7 +22,9 @@
 #define MAP_W 32
 #define MAP_H 32
 
-#define MAX_UNITS 10
+#define MAX_UNITS 12
+
+#define CHECK_SPAWNS_CONFLICTS true
 
 /**
  * Data form for a Tile type
@@ -60,6 +62,12 @@ struct MUnit
     bool hasAttackedThisTurn;
     bool isVisibleThisTurn;
     int x, y;
+};
+
+struct UnitSpawn{
+    int type;
+    int x;
+    int y;
 };
 
 /**
@@ -114,5 +122,7 @@ bool moveUnitTo(int unitID, int x, int y);
  * @return bool true if attack was successful
  */
 bool attackUnit(int unitID, int targetUnitID);
+
+void loadUnits(struct UnitSpawn* spawns);
 
 #endif
