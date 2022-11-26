@@ -50,31 +50,56 @@ const struct Unit allUnits[12] = {
      (int[3]){1, 3, 2}, true, 5} // total 6
 };
 
+void floodFillVisibleFrom(int x, int y)
+{
+    if(x < 0 || y < 0 || x >= MAP_W || y >= MAP_H)
+        return;
+
+    if (visibleMapTiles[(y*MAP_W)+x] == true) // if the tile is already visible return
+        return;                                              
+
+    visibleMapTiles[(y*MAP_W)+x] = true; // set this tile visible
+
+    // recursively visit all tiles in a 4 way direction
+    floodFillVisibleFrom(x + 1, y); 
+    floodFillVisibleFrom(x - 1, y); 
+    floodFillVisibleFrom(x, y + 1);
+    floodFillVisibleFrom(x, y - 1); 
+}
+
 void calculateVisibleTiles(int team)
 {
+    for(int i = 0; i < MAP_H * MAP_W; i++){
+        visibleMapTiles[i] = false;
+    }
     for (int i = 0; i < MAX_UNITS * 3; i++)
     {
         struct Unit u = allUnits[loadedUnits[i].type];
         if (u.team == team)
         {
             int r = u.stats[BUFF_SIGHT];
-            while (r > 0)
+            int x = r;
+            int y = 0;
+            int d = 0;
+            while (x >= y)
             {
-                int x = r;
-                int y = 0;
-                int d = 0;
-                while (x >= y)
+                visibleMapTiles[(y * MAP_W) + x] = true;
+                d += (2 * y + 1);
+                if (d >= 0)
                 {
-                    visibleMapTiles[(y * MAP_W) + x] = true;
-                    d += (2 * y + 1);
-                    if (d >= 0)
-                    {
-                        d += (-2 * x + 1);
-                        x--;
-                    }
+                    d += (-2 * x + 1);
+                    x--;
                 }
-                r--;
             }
+            floodFillVisibleFrom(loadedUnits[i].x, loadedUnits[i].y);
+        }
+    }
+    for (int i = 0; i < MAX_UNITS * 3; i++)
+    {
+        struct Unit u = allUnits[loadedUnits[i].type];
+        if (u.team != team)
+        {
+            loadedUnits[i].isVisibleThisTurn = visibleMapTiles[loadedUnits[i].x + (loadedUnits[i].y * MAP_W)];
         }
     }
 }
@@ -95,7 +120,6 @@ void startTurnFor(int team)
         {
             loadedUnits[i].hasAttackedThisTurn = true;
             loadedUnits[i].movement = 0;
-            loadedUnits[i].isVisibleThisTurn = visibleMapTiles[loadedUnits[i].x + (loadedUnits[i].y * MAP_W)];
         }
     }
 }
@@ -111,6 +135,7 @@ bool moveUnitTo(int unitID, int x, int y)
     }
     loadedUnits[unitID].x = x;
     loadedUnits[unitID].y = y;
+    calculateVisibleTiles(allUnits[loadedUnits[unitID].type].team);
     return true;
 }
 
@@ -124,7 +149,8 @@ bool attackUnit(int unitID, int targetUnitID)
     int yDist = abs(curr.y - target.y);
 
     int totalDistance = xDist + yDist;
-    if(totalDistance <= 1 || (totalDistance <= 2 && u.type == TYPE_WATER)){
+    if (totalDistance <= 1 || (totalDistance <= 2 && u.type == TYPE_WATER))
+    {
         target.health -= u.stats[BUFF_STRENGTH];
         return true;
     }
