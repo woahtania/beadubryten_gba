@@ -31,7 +31,7 @@ struct Tile
     int team;     // one of the defined teams above or -1 for generic
     int type;     // the type of tile (land, water, or air)
     int buffType; // the type of buff applied to home team and debuff applied to home team
-    int buffStrength = 1;
+    //int buffStrength;
     char *name;
 };
 

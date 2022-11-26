@@ -1,22 +1,22 @@
 
-//{{BLOCK(map)
+//{{BLOCK(battlemap)
 
 //======================================================================
 //
-//	map, 512x512@8, 
+//	battlemap, 512x512@8, 
 //	Transparent color : FF,00,F6
 //	+ palette 256 entries, not compressed
 //	+ 19 tiles (t|f reduced) not compressed
 //	+ regular map (in SBBs), not compressed, 64x64 
 //	Total size: 512 + 1216 + 8192 = 9920
 //
-//	Time-stamp: 2022-11-26, 00:12:09
+//	Time-stamp: 2022-11-26, 11:07:31
 //	Exported by Cearn's GBA Image Transmogrifier, v0.9.2
 //	( http://www.coranac.com/projects/#grit )
 //
 //======================================================================
 
-const unsigned int mapTiles[304] __attribute__((aligned(4))) __attribute__((visibility("hidden")))=
+const unsigned int battlemapTiles[304] __attribute__((aligned(4))) __attribute__((visibility("hidden")))=
 {
 	0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,
 	0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,
@@ -62,7 +62,7 @@ const unsigned int mapTiles[304] __attribute__((aligned(4))) __attribute__((visi
 	0x05050505,0x05050705,0x05050507,0x05070307,0x07070707,0x05070307,0x07070706,0x07060606,
 };
 
-const unsigned short mapMap[4096] __attribute__((aligned(4))) __attribute__((visibility("hidden")))=
+const unsigned short battlemapMap[4096] __attribute__((aligned(4))) __attribute__((visibility("hidden")))=
 {
 	0x0001,0x0002,0x0001,0x0002,0x0001,0x0002,0x0001,0x0002,
 	0x0001,0x0002,0x0001,0x0002,0x0001,0x0002,0x0001,0x0002,
@@ -641,7 +641,7 @@ const unsigned short mapMap[4096] __attribute__((aligned(4))) __attribute__((vis
 	0x0003,0x0004,0x0003,0x0004,0x0003,0x0004,0x0003,0x0004,
 };
 
-const unsigned short mapPal[256] __attribute__((aligned(4))) __attribute__((visibility("hidden")))=
+const unsigned short battlemapPal[256] __attribute__((aligned(4))) __attribute__((visibility("hidden")))=
 {
 	0x1085,0x4A52,0x2529,0x7FFF,0x1106,0x1189,0x1CE9,0x18C6,
 	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
@@ -680,4 +680,4 @@ const unsigned short mapPal[256] __attribute__((aligned(4))) __attribute__((visi
 	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
 };
 
-//}}BLOCK(map)
+//}}BLOCK(battlemap)
