@@ -69,6 +69,12 @@ void floodFillVisibleFrom(int x, int y)
     floodFillVisibleFrom(x, y - 1); 
 }
 
+void setTilevisible(int x, int y) {
+    if (x > 0 && x < MAP_W && y > 0 && y < MAP_H) {
+        visibleMapTiles[(y * MAP_W) + x] = true;
+    }
+}
+
 void calculateVisibleTiles(int team)
 {
     for(int i = 0; i < MAP_H * MAP_W; i++){
@@ -85,8 +91,16 @@ void calculateVisibleTiles(int team)
             int d = 0;
             while (x >= y)
             {
-                visibleMapTiles[(y * MAP_W) + x] = true;
+                setTilevisible(loadedUnits[i].y + y, loadedUnits[i].x + x);
+                setTilevisible(loadedUnits[i].y - y, loadedUnits[i].x + x);
+                setTilevisible(loadedUnits[i].y + y, loadedUnits[i].x - x);
+                setTilevisible(loadedUnits[i].y - y, loadedUnits[i].x - x);
+                setTilevisible(loadedUnits[i].x + x, loadedUnits[i].y + y);
+                setTilevisible(loadedUnits[i].x - x, loadedUnits[i].y + y);
+                setTilevisible(loadedUnits[i].x + x, loadedUnits[i].y - y);
+                setTilevisible(loadedUnits[i].x - x, loadedUnits[i].y - y);
                 d += (2 * y + 1);
+                y++;
                 if (d >= 0)
                 {
                     d += (-2 * x + 1);
