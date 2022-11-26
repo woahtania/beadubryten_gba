@@ -9,4 +9,6 @@ void sc_battle_complete();
 
 void sc_battle_deconstruct();
 
+void updateFog();
+
 #endif
