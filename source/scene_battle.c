@@ -36,6 +36,11 @@ void initUnits() {
 	// Initialise an OAM object for each unit
 	oam_init(unit_objs, MAX_UNITS * 3);
 
+#include "flag_cy.h"
+#include "flag_en.h"
+#include "flag_sc.h"
+
+
 	for(int i = 0; i < MAX_UNITS * 3; i++) {
 		// Set the tile_id to the tile in the spritesheet for that unit
 		int tile_id = 8 * loadedUnits[i].type;
@@ -65,9 +70,9 @@ void initMap() {
 
 	// Create a fog of war palette by duplicating the current palette and halving the RGB values
 	for (u8 i = 0; i < pal_len; i++) {
-		pal_bg_mem[pal_len + i] = ((pal_bg_mem[i] & 31) / 2) + 
-			((((pal_bg_mem[i] >> 5) & 31) / 2) << 5) + 
-			((((pal_bg_mem[i] >> 10) & 31) / 2) << 10);
+		pal_bg_mem[pal_len + i] = ((pal_bg_mem[i] & 31) / 2) +
+								  ((((pal_bg_mem[i] >> 5) & 31) / 2) << 5) +
+								  ((((pal_bg_mem[i] >> 10) & 31) / 2) << 10);
 	}
 
 	// Create a duplicated tileset
@@ -138,10 +143,38 @@ void sc_battle_init()
 	updateFog();
 }
 
-void sc_battle_tick()
+void flag_en()
 {
+	// Load palette
+	memcpy(pal_bg_mem, flag_enPal, flag_enPalLen);
+	// Load tiles into CBB 0
+	memcpy(&tile_mem[0][0], flag_enTiles, flag_enTilesLen);
+	// Load map into SBB 30
+	memcpy(&se_mem[30][0], flag_enMap, flag_enMapLen);
 
 }
+
+void flag_sc()
+{
+	// Load palette
+	memcpy(pal_bg_mem, flag_scPal, flag_scPalLen);
+	// Load tiles into CBB 0
+	memcpy(&tile_mem[0][0], flag_scTiles, flag_scTilesLen);
+	// Load map into SBB 30
+	memcpy(&se_mem[30][0], flag_scMap, flag_scMapLen);
+}
+
+void flag_cy()
+{
+	// Load palette
+	memcpy(pal_bg_mem, flag_cyPal, flag_cyPalLen);
+	// Load tiles into CBB 0
+	memcpy(&tile_mem[0][0], flag_cyTiles, flag_cyTilesLen);
+	// Load map into SBB 30
+	memcpy(&se_mem[30][0], flag_cyMap, flag_cyMapLen);
+}
+
+
 
 void sc_battle_complete() {
 	// Test: flip tile visibility status of every tile and update fog
