@@ -1,4 +1,7 @@
+#include <tonc.h>
+#include <tonc_types.h>
 #include <stdbool.h>
+
 #include "scene.h"
 #include "scene_battle.h"
 
@@ -10,9 +13,10 @@ void registerAllScenes() {
 }
 
 int main() {
-	irq_init((void*)0);
+	irq_init(NULL);
+	irq_enable(II_VBLANK);
 	registerAllScenes();
-	currentScene = 0;
+	currentScene = SCENE_BATTLE;
 	scene_init();
 
 	while(true) {
