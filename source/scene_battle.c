@@ -5,6 +5,8 @@
 #include "battlemap.h"
 #include "battle.h"
 
+#include "battlemap_data.h"
+
 // The actual count of tiles
 #define BATTLEMAP_TILES_LEN ((battlemapTilesLen/64) + 1)
 
@@ -57,9 +59,8 @@ void sc_battle_init()
 
 	loadMap();
 
-	struct MUnit unit = {1, 5, 5, false, false, 10, 10};
-	loadedUnits[0] = unit;
-	startTurnFor(TEAM_ENGLAND);
+	loadUnits(&battlemapSpawns);
+	startTurnFor(TEAM_SCOTLAND);
 
 	updateFog();
 }

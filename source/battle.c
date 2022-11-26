@@ -70,7 +70,7 @@ void floodFillVisibleFrom(int x, int y)
 }
 
 void setTilevisible(int x, int y) {
-    if (x > 0 && x < MAP_W && y > 0 && y < MAP_H) {
+    if (x >= 0 && x < MAP_W && y >= 0 && y < MAP_H) {
         visibleMapTiles[(y * MAP_W) + x] = true;
     }
 }
@@ -85,7 +85,7 @@ void calculateVisibleTiles(int team)
         struct Unit u = allUnits[loadedUnits[i].type];
         if (u.team == team)
         {
-            int r = u.stats[BUFF_SIGHT];
+            int r = u.stats[BUFF_SIGHT]+6;
             int x = r;
             int y = 0;
             int d = 0;
@@ -107,7 +107,7 @@ void calculateVisibleTiles(int team)
                     x--;
                 }
             }
-            floodFillVisibleFrom(loadedUnits[i].x, loadedUnits[i].y);
+            //floodFillVisibleFrom(loadedUnits[i].x, loadedUnits[i].y);
         }
     }
     for (int i = 0; i < MAX_UNITS * 3; i++)
@@ -171,4 +171,13 @@ bool attackUnit(int unitID, int targetUnitID)
         return true;
     }
     return false;
+}
+
+void loadUnits(struct UnitSpawn* spawns){
+    for(int i = 0; i < MAX_UNITS * 3; i++){
+        struct UnitSpawn us = *(spawns + i);
+        loadedUnits[i] = (struct MUnit){us.type, 8, 0, true, false, us.x, us.y};
+        //if(us.type == 2)
+        //return;
+    }
 }
