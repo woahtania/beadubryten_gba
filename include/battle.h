@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #define TEAM_NONE -1
 #define TEAM_ENGLAND 0
@@ -31,7 +32,7 @@ struct Tile
     int team;     // one of the defined teams above or -1 for generic
     int type;     // the type of tile (land, water, or air)
     int buffType; // the type of buff applied to home team and debuff applied to home team
-    //int buffStrength;
+    int buffStrength;
     char *name;
 };
 
