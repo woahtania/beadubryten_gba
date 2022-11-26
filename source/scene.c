@@ -4,7 +4,7 @@
 #include <maxmod.h>
 
 // list of all scenes
-struct Scene _allScenes[2];
+struct Scene _allScenes[3];
 int currentScene;
 
 void registerScene(int index, void (*init)(), void(*tick)(), void(*complete)(), void(*deconstruct)()){
