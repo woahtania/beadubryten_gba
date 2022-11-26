@@ -5,15 +5,12 @@
 #include "battlemap.h"
 #include "battle.h"
 
-#define BATTLEMAP_TILES_LEN ((battlemapTilesLen/64) + 1)*2
+// The actual count of tiles
+#define BATTLEMAP_TILES_LEN ((battlemapTilesLen/64) + 1)
 
 bool visibleMapTiles[MAP_W * MAP_H];
 
-void sc_battle_init()
-{
-    REG_DISPCNT = DCNT_MODE1 | DCNT_BG0;
-	REG_BG0CNT = BG_CBB(0) | BG_SBB(30) | BG_8BPP | BG_REG_64x64;
-
+void loadMap() {
 	// Load palette
 	memcpy(pal_bg_mem, battlemapPal, battlemapPalLen);
 	// Load tiles into CBB 0
@@ -23,20 +20,32 @@ void sc_battle_init()
 
 	// Find out the real palette length by looping until black
 	u8 pal_len = 0;
-	for (; pal_bg_mem[pal_len] != 0; pal_len++) {}
+	while (battlemapPal[pal_len] != 0) {
+		pal_len++;
+	}
+
 	// Create a fog of war palette by duplicating the current palette and halving the RGB values
 	for (u8 i = 0; i < pal_len; i++) {
 		pal_bg_mem[pal_len + i] = ((pal_bg_mem[i] & 31) / 2) + 
 			((((pal_bg_mem[i] >> 5) & 31) / 2) << 5) + 
 			((((pal_bg_mem[i] >> 10) & 31) / 2) << 10);
 	}
+
 	// Create a duplicated tileset
-	memcpy(&tile_mem[0][BATTLEMAP_TILES_LEN], battlemapTiles, battlemapTilesLen);
-	// Update duplicated tileset to use the new palette IDs
-	u32* tile = (u32*)(&tile_mem[0][BATTLEMAP_TILES_LEN]);
+	memcpy(&tile8_mem[0][BATTLEMAP_TILES_LEN], battlemapTiles, battlemapTilesLen);
+	// Update duplicated tileset to use the fog of war IDs
+	u32* tile = (u32*)(&tile8_mem[0][BATTLEMAP_TILES_LEN]);
 	for (size_t i = 0; i < battlemapTilesLen/4; i++) {
 		*(tile + i) += (pal_len) + (pal_len<<8) + (pal_len<<16) + (pal_len<<24);
 	}
+}
+
+void sc_battle_init()
+{
+    REG_DISPCNT = DCNT_MODE1 | DCNT_BG0;
+	REG_BG0CNT = BG_CBB(0) | BG_SBB(30) | BG_8BPP | BG_REG_64x64;
+
+
 
 	// for(size_t i = 0; i < MAP_W * MAP_H; i++) {
 	// 	visibleMapTiles[i] = true;
@@ -46,35 +55,37 @@ void sc_battle_init()
 	// 	visibleMapTiles[i*MAP_W + 16] = false;
 	// }
 
-	struct MUnit unit = {0, 5, 5, false, false, 5, 5};
+	loadMap();
 
-	startTurnFor(TEAM_CYMRU);
-	UpdateFog();
+	struct MUnit unit = {1, 5, 5, false, false, 10, 10};
+	loadedUnits[0] = unit;
+	startTurnFor(TEAM_ENGLAND);
+
+	updateFog();
 }
 
-size_t Tile2MapId(size_t tile_x, size_t tile_y) {
+size_t tile2MapId(size_t tile_x, size_t tile_y) {
 	return (tile_y >=16 ? (32*64 + (tile_y*2 - 32)*32) : (tile_y * 64)) + 
 		(tile_x >= 16 ? (32*32 + (tile_x*2 - 32)) : tile_x*2);
 }
 
-void UpdateFog() {
+void updateFog() {
 	
 	for(size_t y = 0; y < MAP_H; y++) {
 		for(size_t x = 0; x < MAP_W; x++) {
-			size_t map_id = Tile2MapId(x, y);
-			if(visibleMapTiles[y * MAP_H + x] && *(&se_mem[30][map_id]) > BATTLEMAP_TILES_LEN/2) {
-				*(&se_mem[30][map_id]) -= BATTLEMAP_TILES_LEN/2;
-				*(&se_mem[30][map_id+1]) -= BATTLEMAP_TILES_LEN/2;
-				*(&se_mem[30][map_id+32]) -= BATTLEMAP_TILES_LEN/2;
-				*(&se_mem[30][map_id+33]) -= BATTLEMAP_TILES_LEN/2;
+			size_t map_id = tile2MapId(x, y);
+			if(visibleMapTiles[y * MAP_H + x] && *(&se_mem[30][map_id]) > BATTLEMAP_TILES_LEN) {
+				*(&se_mem[30][map_id]) -= BATTLEMAP_TILES_LEN;
+				*(&se_mem[30][map_id+1]) -= BATTLEMAP_TILES_LEN;
+				*(&se_mem[30][map_id+32]) -= BATTLEMAP_TILES_LEN;
+				*(&se_mem[30][map_id+33]) -= BATTLEMAP_TILES_LEN;
 			} 
-			else if (!visibleMapTiles[y * MAP_H + x] && *(&se_mem[30][map_id]) <= BATTLEMAP_TILES_LEN/2) {
-				*(&se_mem[30][map_id]) += BATTLEMAP_TILES_LEN/2;
-				*(&se_mem[30][map_id+1]) += BATTLEMAP_TILES_LEN/2;
-				*(&se_mem[30][map_id+32]) += BATTLEMAP_TILES_LEN/2;
-				*(&se_mem[30][map_id+33]) += BATTLEMAP_TILES_LEN/2;
+			else if (!visibleMapTiles[y * MAP_H + x] && *(&se_mem[30][map_id]) <= BATTLEMAP_TILES_LEN) {
+				*(&se_mem[30][map_id]) += BATTLEMAP_TILES_LEN;
+				*(&se_mem[30][map_id+1]) += BATTLEMAP_TILES_LEN;
+				*(&se_mem[30][map_id+32]) += BATTLEMAP_TILES_LEN;
+				*(&se_mem[30][map_id+33]) += BATTLEMAP_TILES_LEN;
 			}
-			
 		}
 	}
 }
@@ -85,7 +96,7 @@ void sc_battle_tick()
 		for(size_t i = 0; i < MAP_W * MAP_H; i++) {
 			visibleMapTiles[i] = !visibleMapTiles[i];
 		}
-		UpdateFog();
+		updateFog();
 	}
 }
 
