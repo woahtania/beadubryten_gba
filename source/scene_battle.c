@@ -79,35 +79,6 @@ void initMap() {
 	}
 }
 
-void sc_battle_init()
-{
-    REG_DISPCNT = DCNT_MODE1 | DCNT_BG0;
-	REG_BG0CNT = BG_CBB(0) | BG_SBB(30) | BG_8BPP | BG_REG_64x64;
-
-
-
-	// for(size_t i = 0; i < MAP_W * MAP_H; i++) {
-	// 	visibleMapTiles[i] = true;
-	// }
-
-	// for(size_t i = 0; i < 32; i++) {
-	// 	visibleMapTiles[i*MAP_W + 16] = false;
-	// }
-
-	loadMap();
-
-	struct MUnit unit = {1, 5, 5, false, false, 10, 10};
-	loadedUnits[0] = unit;
-	startTurnFor(TEAM_ENGLAND);
-
-	updateFog();
-}
-
-size_t tile2MapId(size_t tile_x, size_t tile_y) {
-	return (tile_y >=16 ? (32*64 + (tile_y*2 - 32)*32) : (tile_y * 64)) + 
-		(tile_x >= 16 ? (32*32 + (tile_x*2 - 32)) : tile_x*2);
-}
-
 void updateFog() {
 	for(size_t y = 0; y < MAP_H; y++) {
 		for(size_t x = 0; x < MAP_W; x++) {
@@ -136,6 +107,7 @@ void updateUnits() {
 	for(int i = 0; i < MAX_UNITS * 3; i++) {
 		// Set position based on unit position
 		// TODO: this needs to account for camera position
+		// TODO: Needs to check the bounds of the screen as overflow will cause offscreen units to be rendered
 		obj_set_pos(&unit_objs[i], loadedUnits[i].x * 32, loadedUnits[i].y * 32);
 		// (un)hide unit based on visible status
 		if (loadedUnits[i].isVisibleThisTurn) {
@@ -158,21 +130,13 @@ void sc_battle_init()
 
 	initMap();
 
-	// Create test units
-	// for(int i = 0; i < 5; i++) {
-	// 	struct MUnit unit = {i % 3 == 0 ? 4 : (i % 2 == 0 ? 11 : 8), 5, 5, false, false, i % 8, i / 8};
-	// 	loadedUnits[i] = unit;
-	// }
-	
-	struct MUnit unit = {4, 5, 5, false, false, 3, 3};
-	loadedUnits[0] = unit;
-	startTurnFor(TEAM_ENGLAND);
+	loadUnits(&battlemapSpawns);
+	startTurnFor(TEAM_SCOTLAND);
 
 	initUnits();
 
 	updateFog();
 }
-
 
 void sc_battle_tick()
 {
