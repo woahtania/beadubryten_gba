@@ -2,6 +2,7 @@
 #include "battle.h"
 
 struct MUnit loadedUnits[MAX_UNITS * 3];
+int currentTeam;
 
 const struct Tile allTiles[12] = {
     {TEAM_NONE, TYPE_LAND, BUFF_NONE,0, "Plains"},
@@ -139,6 +140,7 @@ void startTurnFor(int team)
             loadedUnits[i].isVisibleThisTurn = visibleMapTiles[loadedUnits[i].x + loadedUnits[i].y*MAP_W];
         }
     }
+    currentTeam = team;
 }
 
 bool moveUnitTo(int unitID, int x, int y)

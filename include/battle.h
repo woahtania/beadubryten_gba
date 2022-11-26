@@ -88,6 +88,11 @@ extern bool visibleMapTiles[MAP_W * MAP_H];
 extern struct MUnit loadedUnits[MAX_UNITS * 3];
 
 /**
+ * The current teams turn
+*/
+extern int currentTeam;
+
+/**
  * Begins the turn for a particular team, setting all loaded units' values
  * @param team the team to start for
  */
