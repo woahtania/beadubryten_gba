@@ -136,6 +136,7 @@ void startTurnFor(int team)
         {
             loadedUnits[i].hasAttackedThisTurn = true;
             loadedUnits[i].movement = 0;
+            loadedUnits[i].isVisibleThisTurn = visibleMapTiles[loadedUnits[i].x + loadedUnits[i].y*MAP_W];
         }
     }
 }
