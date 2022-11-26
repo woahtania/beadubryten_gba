@@ -2,21 +2,24 @@
 #include <string.h>
 #include "scene.h"
 #include "scene_battle.h"
-#include "map.h"
+#include "battlemap.h"
+#include "battle.h"
+
+#define BATTLEMAP_TILES_LEN ((battlemapTilesLen/64) + 1)*2
+
+bool visibleMapTiles[MAP_W * MAP_H];
 
 void sc_battle_init()
 {
-    REG_DISPCNT = DCNT_MODE1 | DCNT_BG0 | DCNT_BG1;
+    REG_DISPCNT = DCNT_MODE1 | DCNT_BG0;
 	REG_BG0CNT = BG_CBB(0) | BG_SBB(30) | BG_8BPP | BG_REG_64x64;
-	REG_BG1CNT = BG_CBB(0) | BG_SBB(10) | BG_8BPP | BG_REG_64x64;
-
 
 	// Load palette
-	memcpy(pal_bg_mem, mapPal, mapPalLen);
+	memcpy(pal_bg_mem, battlemapPal, battlemapPalLen);
 	// Load tiles into CBB 0
-	memcpy(&tile_mem[0][0], mapTiles, mapTilesLen);
+	memcpy(&tile_mem[0][0], battlemapTiles, battlemapTilesLen);
 	// Load map into SBB 30
-	memcpy(&se_mem[30][0], mapMap, mapMapLen);
+	memcpy(&se_mem[30][0], battlemapMap, battlemapMapLen);
 
 	// Find out the real palette length by looping until black
 	u8 pal_len = 0;
@@ -27,26 +30,63 @@ void sc_battle_init()
 			((((pal_bg_mem[i] >> 5) & 31) / 2) << 5) + 
 			((((pal_bg_mem[i] >> 10) & 31) / 2) << 10);
 	}
-	u8 tile_len = ((mapTilesLen/64) + 1)*2;
 	// Create a duplicated tileset
-	memcpy(&tile_mem[0][tile_len], mapTiles, mapTilesLen);
+	memcpy(&tile_mem[0][BATTLEMAP_TILES_LEN], battlemapTiles, battlemapTilesLen);
 	// Update duplicated tileset to use the new palette IDs
-	u32* tile = (u32*)(&tile_mem[0][tile_len]);
-	for (size_t i = 0; i < mapTilesLen/4; i++) {
+	u32* tile = (u32*)(&tile_mem[0][BATTLEMAP_TILES_LEN]);
+	for (size_t i = 0; i < battlemapTilesLen/4; i++) {
 		*(tile + i) += (pal_len) + (pal_len<<8) + (pal_len<<16) + (pal_len<<24);
 	}
-	// Load map into SBB 10
-	memcpy(&se_mem[10][0], mapMap, mapMapLen);
-	u16* map = &se_mem[10][0];
-	for (size_t i = 0; i < mapMapLen/2; i++) {
-		*(map + i) += tile_len;
-	}
 
+	// for(size_t i = 0; i < MAP_W * MAP_H; i++) {
+	// 	visibleMapTiles[i] = true;
+	// }
+
+	// for(size_t i = 0; i < 32; i++) {
+	// 	visibleMapTiles[i*MAP_W + 16] = false;
+	// }
+
+	struct MUnit unit = {0, 5, 5, false, false, 5, 5};
+
+	startTurnFor(TEAM_CYMRU);
+	UpdateFog();
+}
+
+size_t Tile2MapId(size_t tile_x, size_t tile_y) {
+	return (tile_y >=16 ? (32*64 + (tile_y*2 - 32)*32) : (tile_y * 64)) + 
+		(tile_x >= 16 ? (32*32 + (tile_x*2 - 32)) : tile_x*2);
+}
+
+void UpdateFog() {
+	
+	for(size_t y = 0; y < MAP_H; y++) {
+		for(size_t x = 0; x < MAP_W; x++) {
+			size_t map_id = Tile2MapId(x, y);
+			if(visibleMapTiles[y * MAP_H + x] && *(&se_mem[30][map_id]) > BATTLEMAP_TILES_LEN/2) {
+				*(&se_mem[30][map_id]) -= BATTLEMAP_TILES_LEN/2;
+				*(&se_mem[30][map_id+1]) -= BATTLEMAP_TILES_LEN/2;
+				*(&se_mem[30][map_id+32]) -= BATTLEMAP_TILES_LEN/2;
+				*(&se_mem[30][map_id+33]) -= BATTLEMAP_TILES_LEN/2;
+			} 
+			else if (!visibleMapTiles[y * MAP_H + x] && *(&se_mem[30][map_id]) <= BATTLEMAP_TILES_LEN/2) {
+				*(&se_mem[30][map_id]) += BATTLEMAP_TILES_LEN/2;
+				*(&se_mem[30][map_id+1]) += BATTLEMAP_TILES_LEN/2;
+				*(&se_mem[30][map_id+32]) += BATTLEMAP_TILES_LEN/2;
+				*(&se_mem[30][map_id+33]) += BATTLEMAP_TILES_LEN/2;
+			}
+			
+		}
+	}
 }
 
 void sc_battle_tick()
 {
-
+	if (key_is_down(KEY_A)) {
+		for(size_t i = 0; i < MAP_W * MAP_H; i++) {
+			visibleMapTiles[i] = !visibleMapTiles[i];
+		}
+		UpdateFog();
+	}
 }
 
 void sc_battle_complete() {

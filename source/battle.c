@@ -1,6 +1,8 @@
 
 #include "battle.h"
 
+struct MUnit loadedUnits[MAX_UNITS * 3];
+
 const struct Tile allTiles[12] = {
     {TEAM_NONE, TYPE_LAND, BUFF_NONE,0, "Plains"},
     {TEAM_NONE, TYPE_WATER, BUFF_NONE,0, "Sea"},
