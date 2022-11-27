@@ -6,7 +6,7 @@
 #include "battle.h"
 #include "util.h"
 #include "panel.h"
-
+#include "sound.h"
 #include "sprites.h"
 #include "flag_en.h"
 #include "flag_cy.h"
@@ -197,6 +197,7 @@ void sc_battle_init()
 
 	initMap();
 	initPanel();
+	initSound();
 
 	loadUnits(&battlemapSpawns);
 
@@ -214,6 +215,8 @@ void sc_battle_init()
 	}
 
 	startTurnFor(TEAM_SCOTLAND);
+	changeSong(MOD_SCOTLAND);
+	quietSong();
 
 	initUnits();
 
@@ -281,6 +284,9 @@ void procKey(int key, int *frameVal, int *changeVal, int delta)
 }
 
 void updateCamera() {
+	int oldX = cursor.x;
+	int oldY = cursor.y;
+
 	procKey(KEY_DOWN, &cursor.hf_d, &cursor.y, 1);
 	procKey(KEY_UP, &cursor.hf_u, &cursor.y, -1);
 	procKey(KEY_LEFT, &cursor.hf_l, &cursor.x, -1);
@@ -297,6 +303,9 @@ void updateCamera() {
 	cursor.x = clamp(cursor.x, 0, MAP_W);
 	cursor.y = clamp(cursor.y, 0, MAP_H );
 
+	if (cursor.x != oldX || cursor.y != oldY) {
+		playSfx(SFX_CURSOR_CLICK);
+	}
 	
 	obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], cursor.x * 16 - cursor.camX, cursor.y * 16 - cursor.camY);
 
@@ -390,8 +399,8 @@ void sc_battle_tick()
 			if (unit != -1 && loadedUnits[unit].movement > 0) {
 				cursor.selectedUnitForMovement = unit;
 				controlStatus = CONTROL_UNITMOVE;
-					cursor.selectedUnitForFrames = 0;
-				
+				cursor.selectedUnitForFrames = 0;
+				playSfx(SFX_MOVE_SELECT);
 			}
 		}
 	}
@@ -409,7 +418,7 @@ void sc_battle_tick()
 		}
 		else
 		{
-			// play beep noise because it didnt happen
+			playSfx(SFX_CANCEL);
 		}
 	}
 
@@ -426,6 +435,7 @@ void sc_battle_tick()
 					cursor.selectedUnitForAtk = i;
 					cursor.selectedUnitForFrames = 0;
 					controlStatus = CONTROL_UNITATK;
+					playSfx(SFX_BATTLE_SELECT);
 				}
 			}
 		}
@@ -443,7 +453,9 @@ void sc_battle_tick()
 					controlStatus = CONTROL_BATTLEFIELD;
 					cursor.selectedUnitForAtk = -1;
 					cursor.selectedUnitForFrames = 0;
-				};
+				} else {
+					playSfx(SFX_CANCEL);
+				}
 				break;
 			}
 		}
@@ -484,12 +496,15 @@ void sc_battle_tick()
 		cursor.selectedUnitForAtk = -1;
 		cursor.selectedUnitForMovement = -1;
 		cursor.selectedUnitForFrames = 0;
+		playSfx(SFX_CANCEL);
 	}
 
 	if (controlStatus == CONTROL_BATTLEFIELD)
 	{
 		obj_unhide(&unit_objs[UTIL_SPRITE_ID(0)], ATTR0_REG);
 	}
+
+	updateSound();
 }
 
 bool flag_display = false;
@@ -507,18 +522,22 @@ void sc_battle_complete() {
 			REG_BG1HOFS = 0;
 			REG_BG1VOFS = 0;
 			cursor = (struct Cursor){0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1};
-			// Show flag
+      
 			controlStatus = CONTROL_ENDTURN;
+			// Show flag and play song
 			switch (currentTeam)
 			{
 			case TEAM_ENGLAND:
 				flag_cy();
+				changeSong(MOD_CYMRU);
 				break;
 			case TEAM_CYMRU:
 				flag_sc();
+				changeSong(MOD_SCOTLAND);
 				break;
 			case TEAM_SCOTLAND:
 				flag_en();
+				changeSong(MOD_ENGLAND);
 				break;
 			default:
 				break;
@@ -529,8 +548,8 @@ void sc_battle_complete() {
 			initMap();		
 			initPanel();
 			startTurnFor((currentTeam + 1) % 3);
-			updateFog();
-			controlStatus = CONTROL_BATTLEFIELD;
+			updateFog();			controlStatus = CONTROL_BATTLEFIELD;
+			quietSong();
 		}
 		flag_display = !flag_display;
 	}

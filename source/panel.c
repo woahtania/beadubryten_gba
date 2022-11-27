@@ -4,6 +4,7 @@
 #include "ui_panel.h"
 #include "scene_battle.h"
 #include "battle.h"
+#include "sound.h"
 
 // Count of tiles in panel
 #define PANEL_TILES 4*5
@@ -99,10 +100,16 @@ void openPanel() {
     // Scroll panel into view
     REG_BG0HOFS = 34 - SCREEN_WIDTH;
     REG_BG0VOFS = 16 - SCREEN_HEIGHT/2;
+    
+    // Play open sound
+    playSfx(SFX_PANEL_OPEN);
 }
 
 void closePanel() {
     // Move panel out of view
     REG_BG0VOFS = 80;
     controlStatus = CONTROL_BATTLEFIELD;
+
+    // Play close sound
+    playSfx(SFX_PANEL_CLOSE);
 }
