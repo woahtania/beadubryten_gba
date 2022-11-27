@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "util.h"
+
 #define TEAM_NONE -1
 #define TEAM_ENGLAND 0
 #define TEAM_CYMRU 1

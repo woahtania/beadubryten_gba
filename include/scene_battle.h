@@ -26,6 +26,7 @@ struct Cursor{
 
     int selectedUnitForMovement;
     int selectedUnitForFrames;
+    int selectedUnitForAtk;
 };
 
 #endif
