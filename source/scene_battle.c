@@ -339,6 +339,17 @@ void sc_battle_tick()
 {
 	bool a_hit = key_hit(KEY_A);
 	bool b_hit = key_hit(KEY_B);
+	bool r_hit = key_hit(KEY_R);
+
+	if (r_hit && controlStatus == CONTROL_BATTLEFIELD) {
+		openPanel();
+		r_hit = false;
+	}
+
+	if (r_hit && controlStatus == CONTROL_PANELOPEN) {
+		closePanel();
+		r_hit = false;
+	}
 
 	if (a_hit && controlStatus == CONTROL_BATTLEFIELD)
 	{
@@ -478,6 +489,8 @@ void sc_battle_complete() {
 			default:
 				break;
 			}
+			// Hide panel layer BG
+			REG_DISPCNT &= ~DCNT_BG0;
 		} else {
 			initMap();		
 			initPanel();
@@ -486,8 +499,8 @@ void sc_battle_complete() {
 		}
 		flag_display = !flag_display;
 	}
-
-	if (!flag_display) {
+	// Don't allow camera movement when the end turn display is up or a panel is open
+	if (!flag_display && controlStatus != CONTROL_PANELOPEN) {
 		updateCamera();
 	}
 

@@ -124,7 +124,7 @@ int unitAt(int x, int y) {
     for (int i = 0; i < MAX_UNITS * 3; i++)
     {
         struct MUnit mu = loadedUnits[i];
-        if (mu.x == x && mu.y == y)
+        if (mu.x == x && mu.y == y && mu.isVisibleThisTurn)
         {
             return i;
         }

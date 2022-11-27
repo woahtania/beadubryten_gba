@@ -36,8 +36,9 @@ void initPanel() {
     REG_DISPCNT |= DCNT_BG0;
     REG_BG0CNT = BG_CBB(CHARBLOCK_UI) | BG_SBB(SCREENBLOCK_UI) | BG_8BPP | BG_REG_32x32 | BG_PRIO(0);
 
-    REG_BG0HOFS = 34 - SCREEN_WIDTH;
-    REG_BG0VOFS = 16 - SCREEN_HEIGHT/2;
+    REG_BG0VOFS = 80;
+
+    paletteOffset = 0;
     
     // Get offset to palette start
     while(pal_bg_mem[paletteOffset] != 0) {
@@ -45,7 +46,7 @@ void initPanel() {
     }
 
     // Load palette at the offset calculated above
-	memcpy(pal_bg_mem + paletteOffset, ui_panelPal, ui_panelPalLen);
+	memcpy(pal_bg_mem + paletteOffset, ui_panelPal, 256 - paletteOffset);
 	memcpy(&tile8_mem[CHARBLOCK_UI][0], ui_panelTiles, ui_panelTilesLen);
     // Only load tiles for the 4*5 size of the panel
 	memcpy(&se_mem[SCREENBLOCK_UI][0], ui_panelMap, 16*PANEL_TILES);
@@ -73,15 +74,19 @@ void initPanel() {
             *(tile + i) += (paletteOffset<<24);
         }
 	}
-
-    openPanel();
 }
 
 void openPanel() {
-    controlStatus = CONTROL_PANELOPEN;
     int unitId = unitAt(cursor.x, cursor.y);
-    struct MUnit unit = loadedUnits[unitId];
+    // Don't open panel if we're not hovered over a valid unit
+    if (unitId == -1) {
+        return;
+    }
 
+    controlStatus = CONTROL_PANELOPEN;
+
+    // Set panel UI tiles based on unit's stats
+    struct MUnit unit = loadedUnits[unitId];
     se_mem[SCREENBLOCK_UI][PANELLOC_CURHEALTH] = TILELOC_CURHEALTH + unit.health-1;
     se_mem[SCREENBLOCK_UI][PANELLOC_MAXHEALTH] = TILELOC_MAXHEALTH + allUnits[unit.type].stats[BUFF_STRENGTH]-1;
     se_mem[SCREENBLOCK_UI][PANELLOC_CURWALK] = TILELOC_CURWALK + unit.movement-1;
@@ -91,9 +96,13 @@ void openPanel() {
     se_mem[SCREENBLOCK_UI][PANELLOC_FLAG] = TILELOC_FLAGS + (allUnits[unit.type].team*2);
     se_mem[SCREENBLOCK_UI][PANELLOC_FLAG + 1] = TILELOC_FLAGS + (allUnits[unit.type].team*2) + 1;
 
+    // Scroll panel into view
+    REG_BG0HOFS = 34 - SCREEN_WIDTH;
+    REG_BG0VOFS = 16 - SCREEN_HEIGHT/2;
 }
 
 void closePanel() {
+    // Move panel out of view
+    REG_BG0VOFS = 80;
     controlStatus = CONTROL_BATTLEFIELD;
-
 }

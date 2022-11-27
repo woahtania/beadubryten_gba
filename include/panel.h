@@ -3,4 +3,8 @@
 
 void initPanel();
 
+void openPanel();
+
+void closePanel();
+
 #endif
