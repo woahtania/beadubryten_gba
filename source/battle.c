@@ -162,6 +162,13 @@ void startTurnFor(int team)
 
 bool moveUnitTo(int unitID, int x, int y)
 {
+    for (int i = 0; i < MAX_UNITS * 3; i++)
+    {
+        struct MUnit m = loadedUnits[i];
+        if (m.x == x && m.y == y && m.health >= 1)
+            return false;
+    }
+
     struct MUnit curr = loadedUnits[unitID];
     struct Unit u = allUnits[curr.type];
     int xDist = x - curr.x;
@@ -224,6 +231,10 @@ bool attackUnit(int unitID, int targetUnitID)
     struct MUnit curr = loadedUnits[unitID];
     struct MUnit target = loadedUnits[targetUnitID];
     struct Unit u = allUnits[curr.type];
+    struct Unit tu = allUnits[target.type];
+
+    if (u.team == tu.team)
+        return false;
 
     int xDist = abs(curr.x - target.x);
     int yDist = abs(curr.y - target.y);
@@ -233,6 +244,8 @@ bool attackUnit(int unitID, int targetUnitID)
     {
         target.health -= u.stats[BUFF_STRENGTH];
         loadedUnits[targetUnitID].health = clamp(target.health, 0, 10);
+        if (loadedUnits[targetUnitID].health <= 0)
+            loadedUnits[targetUnitID].isVisibleThisTurn = false;
         return true;
     }
     return false;
