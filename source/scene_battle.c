@@ -519,14 +519,18 @@ void sc_battle_complete() {
 			switchScene(SCENE_VICTORY);
 			return;
 		}
-		frame1 = false;
 		if(!flag_display) {
 			// Hide all sprites
 			for(int i = 0; i < MAX_UNITS * 3; i++) {
 				loadedUnits[i].isVisibleThisTurn = false;
 			}
-			teamcams[currentTeam].x = cursor.x;
-			teamcams[currentTeam].y = cursor.y;
+			if (!frame1)
+			{
+				teamcams[currentTeam].x = cursor.x;
+				teamcams[currentTeam].y = cursor.y;
+			}
+			frame1 = false;
+
 			// Reset camera
 			REG_BG1HOFS = 0;
 			REG_BG1VOFS = 0;
@@ -535,11 +539,7 @@ void sc_battle_complete() {
 			controlStatus = CONTROL_ENDTURN;
 			obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], -32, -32);
 
-			int nextTeam;
-			do
-			{
-				nextTeam = (currentTeam + 1) % 3;
-			} while (!canTeamContinue(nextTeam));
+			int nextTeam = (currentTeam + 1) % 3;
 
 			// Show flag and play song
 			switch (nextTeam)
