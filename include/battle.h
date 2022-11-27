@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "util.h"
+
 #define TEAM_NONE -1
 #define TEAM_ENGLAND 0
 #define TEAM_CYMRU 1
@@ -83,7 +85,7 @@ extern const struct Tile allTiles[12];
 /**
  * The current map's tiles
  */
-extern const int mapTiles[MAP_W * MAP_H];
+extern int mapTiles[MAP_W * MAP_H];
 
 /**
  * The current map's visible tiles

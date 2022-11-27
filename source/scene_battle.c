@@ -85,6 +85,10 @@ void initUnits() {
 
 void initMap()
 {
+	for (int i = 0; i < MAP_W * MAP_H; i++)
+	{
+		mapTiles[i] = battlemapTileIDs[i];
+	}
 	// Load palette
 	memcpy(pal_bg_mem, battlemapPal, battlemapPalLen);
 	// Load tiles into CBB 0
@@ -142,8 +146,13 @@ void updateFog() {
 
 void updateUnits() {
 	for(int i = 0; i < MAX_UNITS * 3; i++) {
+		if (loadedUnits[i].health <= 0)
+		{
+			obj_hide(&unit_objs[i]);
+			obj_hide(&unit_objs[MAX_UNITS * 3 + i]);
+			continue;
+		}
 		// Set position based on unit position
-		// TODO: this needs to account for camera position
 		// TODO: Needs to check the bounds of the screen as overflow will cause offscreen units to be rendered
 		int obj_x = loadedUnits[i].x * 16 - (cursor.camX);
 		int obj_y = loadedUnits[i].y * 16 - (cursor.camY);
@@ -176,6 +185,7 @@ void updateUnits() {
 void sc_battle_init()
 {
 	cursor.selectedUnitForMovement = -1;
+	cursor.selectedUnitForAtk = -1;
 	// Set Mode1 (4 backgrounds), enable bg1
     REG_DISPCNT = DCNT_MODE1 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D;
 
@@ -253,6 +263,14 @@ void updateCamera() {
 	procKey(KEY_LEFT, &cursor.hf_l, &cursor.x, -1);
 	procKey(KEY_RIGHT, &cursor.hf_r, &cursor.x, 1);
 
+	if (controlStatus == CONTROL_UNITATK)
+	{
+		struct MUnit mu = loadedUnits[cursor.selectedUnitForAtk];
+		int atkDist = allUnits[mu.type].type == TYPE_WATER ? 2 : 1;
+		cursor.x = clamp(cursor.x, mu.x - atkDist, mu.x + atkDist + 1);
+		cursor.y = clamp(cursor.y, mu.y - atkDist, mu.y + atkDist + 1);
+	}
+
 	cursor.x = clamp(cursor.x, 0, MAP_W);
 	cursor.y = clamp(cursor.y, 0, MAP_H );
 
@@ -319,30 +337,78 @@ void updateCamera() {
 
 void sc_battle_tick()
 {
-	if (key_hit(KEY_A))
+	bool a_hit = key_hit(KEY_A);
+	bool b_hit = key_hit(KEY_B);
+
+	if (a_hit && controlStatus == CONTROL_BATTLEFIELD)
 	{
-		if (cursor.selectedUnitForMovement == -1)
+		a_hit = false;
+		for (int i = 0; i < MAX_UNITS * 3; i++)
 		{
 			int unit = unitAt(cursor.x, cursor.y);
 			if (unit != -1 && loadedUnits[unit].movement > 0) {
 				cursor.selectedUnitForMovement = unit;
-			}
-		}
-		else
-		{
-			if (moveUnitTo(cursor.selectedUnitForMovement, cursor.x, cursor.y))
-			{
-				loadedUnits[cursor.selectedUnitForMovement].isVisibleThisTurn = true;
-				cursor.selectedUnitForMovement = -1;
-			}
-			else
-			{
-				// play beep noise because it didnt happen
+				controlStatus = CONTROL_UNITMOVE;
+					cursor.selectedUnitForFrames = 0;
+				
 			}
 		}
 	}
 
-	if (cursor.selectedUnitForMovement != -1)
+	if (a_hit && controlStatus == CONTROL_UNITMOVE)
+	{
+		a_hit = false;
+		if (moveUnitTo(cursor.selectedUnitForMovement, cursor.x, cursor.y))
+		{
+			loadedUnits[cursor.selectedUnitForMovement].isVisibleThisTurn = true;
+			cursor.selectedUnitForMovement = -1;
+			cursor.selectedUnitForFrames = 0;
+			controlStatus = CONTROL_BATTLEFIELD;
+			updateFog();
+		}
+		else
+		{
+			// play beep noise because it didnt happen
+		}
+	}
+
+	if (b_hit && (controlStatus == CONTROL_BATTLEFIELD))
+	{
+		b_hit = false;
+		for (int i = 0; i < MAX_UNITS * 3; i++)
+		{
+			struct MUnit mu = loadedUnits[i];
+			if (mu.x == cursor.x && mu.y == cursor.y)
+			{
+				if (!mu.hasAttackedThisTurn)
+				{
+					cursor.selectedUnitForAtk = i;
+					cursor.selectedUnitForFrames = 0;
+					controlStatus = CONTROL_UNITATK;
+				}
+			}
+		}
+	}
+
+	if (a_hit && (controlStatus == CONTROL_UNITATK))
+	{
+		a_hit = false;
+		for (int i = 0; i < MAX_UNITS * 3; i++)
+		{
+			if (loadedUnits[i].x == cursor.x && loadedUnits[i].y == cursor.y)
+			{
+				if (attackUnit(cursor.selectedUnitForAtk, i))
+				{
+					controlStatus = CONTROL_BATTLEFIELD;
+					cursor.selectedUnitForAtk = -1;
+					cursor.selectedUnitForFrames = 0;
+				};
+				break;
+			}
+		}
+	}
+
+	if (controlStatus == CONTROL_UNITMOVE)
 	{
 		cursor.selectedUnitForFrames++;
 		if (cursor.selectedUnitForFrames % 60 < 30)
@@ -354,9 +420,32 @@ void sc_battle_tick()
 			loadedUnits[cursor.selectedUnitForMovement].isVisibleThisTurn = true;
 		}
 	}
-	else
+
+	if (controlStatus == CONTROL_UNITATK)
 	{
+		cursor.selectedUnitForFrames++;
+		if (cursor.selectedUnitForFrames % 60 < 30)
+		{
+			obj_hide(&unit_objs[UTIL_SPRITE_ID(0)]);
+		}
+		else
+		{
+			obj_unhide(&unit_objs[UTIL_SPRITE_ID(0)], ATTR0_REG);
+		}
+	}
+
+	if (b_hit && (controlStatus == CONTROL_UNITATK || controlStatus == CONTROL_UNITMOVE))
+	{
+		b_hit = false;
+		controlStatus = CONTROL_BATTLEFIELD;
+		cursor.selectedUnitForAtk = -1;
+		cursor.selectedUnitForMovement = -1;
 		cursor.selectedUnitForFrames = 0;
+	}
+
+	if (controlStatus == CONTROL_BATTLEFIELD)
+	{
+		obj_unhide(&unit_objs[UTIL_SPRITE_ID(0)], ATTR0_REG);
 	}
 }
 
@@ -373,7 +462,7 @@ void sc_battle_complete() {
 			// Reset camera
 			REG_BG1HOFS = 0;
 			REG_BG1VOFS = 0;
-			cursor = (struct Cursor){0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1};
+			cursor = (struct Cursor){0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1};
 			// Show flag
 			switch (currentTeam)
 			{

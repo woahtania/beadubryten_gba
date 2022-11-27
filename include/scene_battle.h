@@ -5,6 +5,7 @@
 #define CONTROL_UNITMOVE 1
 #define CONTROL_ENDTURN 2
 #define CONTROL_PANELOPEN 3
+#define CONTROL_UNITATK 4
 
 extern struct Cursor cursor;
 
@@ -35,6 +36,7 @@ struct Cursor{
 
     int selectedUnitForMovement;
     int selectedUnitForFrames;
+    int selectedUnitForAtk;
 };
 
 #endif

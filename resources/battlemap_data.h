@@ -6,6 +6,8 @@
 
 extern const struct UnitSpawn battlemapSpawns[MAX_UNITS * 3];
 
+extern const int battlemapTileIDs[1024];
+
 extern const char* battlemapMapName;
 
 #endif
