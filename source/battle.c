@@ -1,5 +1,5 @@
-
 #include "battle.h"
+#include "sound.h"
 
 struct MUnit loadedUnits[MAX_UNITS * 3];
 int mapTiles[MAP_W * MAP_H];
@@ -246,6 +246,7 @@ bool attackUnit(int unitID, int targetUnitID)
         loadedUnits[targetUnitID].health = clamp(target.health, 0, 10);
         if (loadedUnits[targetUnitID].health <= 0)
             loadedUnits[targetUnitID].isVisibleThisTurn = false;
+        playSfx(SFX_ATTACK);
         loadedUnits[targetUnitID].hasAttackedThisTurn = true;
         return true;
     }

@@ -6,7 +6,7 @@
 #include "battle.h"
 #include "util.h"
 #include "panel.h"
-
+#include "sound.h"
 #include "sprites.h"
 #include "flag_en.h"
 #include "flag_cy.h"
@@ -192,6 +192,7 @@ void sc_battle_init()
 
 	initMap();
 	initPanel();
+	initSound();
 
 	loadUnits(&battlemapSpawns);
 	startTurnFor(TEAM_SCOTLAND);
@@ -257,6 +258,9 @@ void procKey(int key, int *frameVal, int *changeVal, int delta)
 }
 
 void updateCamera() {
+	int oldX = cursor.x;
+	int oldY = cursor.y;
+
 	procKey(KEY_DOWN, &cursor.hf_d, &cursor.y, 1);
 	procKey(KEY_UP, &cursor.hf_u, &cursor.y, -1);
 	procKey(KEY_LEFT, &cursor.hf_l, &cursor.x, -1);
@@ -273,6 +277,9 @@ void updateCamera() {
 	cursor.x = clamp(cursor.x, 0, MAP_W);
 	cursor.y = clamp(cursor.y, 0, MAP_H );
 
+	if (cursor.x != oldX || cursor.y != oldY) {
+		playSfx(SFX_CURSOR_CLICK);
+	}
 	
 	obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], cursor.x * 16 - cursor.camX, cursor.y * 16 - cursor.camY);
 
@@ -360,7 +367,7 @@ void sc_battle_tick()
 				cursor.selectedUnitForMovement = unit;
 				controlStatus = CONTROL_UNITMOVE;
 					cursor.selectedUnitForFrames = 0;
-				
+				playSfx(SFX_MOVE_SELECT);
 			}
 		}
 	}
@@ -378,7 +385,7 @@ void sc_battle_tick()
 		}
 		else
 		{
-			// play beep noise because it didnt happen
+			playSfx(SFX_CANCEL);
 		}
 	}
 
@@ -395,6 +402,7 @@ void sc_battle_tick()
 					cursor.selectedUnitForAtk = i;
 					cursor.selectedUnitForFrames = 0;
 					controlStatus = CONTROL_UNITATK;
+					playSfx(SFX_BATTLE_SELECT);
 				}
 			}
 		}
@@ -412,7 +420,9 @@ void sc_battle_tick()
 					controlStatus = CONTROL_BATTLEFIELD;
 					cursor.selectedUnitForAtk = -1;
 					cursor.selectedUnitForFrames = 0;
-				};
+				} else {
+					playSfx(SFX_CANCEL);
+				}
 				break;
 			}
 		}
@@ -453,12 +463,15 @@ void sc_battle_tick()
 		cursor.selectedUnitForAtk = -1;
 		cursor.selectedUnitForMovement = -1;
 		cursor.selectedUnitForFrames = 0;
+		playSfx(SFX_CANCEL);
 	}
 
 	if (controlStatus == CONTROL_BATTLEFIELD)
 	{
 		obj_unhide(&unit_objs[UTIL_SPRITE_ID(0)], ATTR0_REG);
 	}
+
+	updateSound();
 }
 
 bool flag_display = false;
