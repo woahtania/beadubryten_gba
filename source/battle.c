@@ -181,12 +181,18 @@ bool moveUnitTo(int unitID, int x, int y)
     int xDist = x - curr.x;
     int yDist = y - curr.y;
 
+    struct Tile tile = allTiles[mapTiles[(y * MAP_W) + x] - 1];
+
+    if (u.type == TYPE_WATER && tile.type != TYPE_WATER)
+    {
+        return false;
+    }
+
     if (u.isSignatureUnit && u.team == TEAM_SCOTLAND)
     {
         // nessy go hog wild
         if (visibleMapTiles[(y * MAP_W) + x])
         {
-            struct Tile tile = allTiles[mapTiles[(y * MAP_W) + x] - 1];
             if (tile.type == TYPE_WATER)
             {
                 loadedUnits[unitID].x = x;
