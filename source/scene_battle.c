@@ -6,7 +6,9 @@
 #include "battle.h"
 
 #include "sprites.h"
-
+#include "flag_en.h"
+#include "flag_cy.h"
+#include "flag_sc.h"
 #include "battlemap_data.h"
 
 // The actual count of tiles
@@ -148,9 +150,9 @@ void flag_en()
 	// Load palette
 	memcpy(pal_bg_mem, flag_enPal, flag_enPalLen);
 	// Load tiles into CBB 0
-	memcpy(&tile_mem[0][0], flag_enTiles, flag_enTilesLen);
+	memcpy(&tile_mem[CHARBLOCK_MAP][0], flag_enTiles, flag_enTilesLen);
 	// Load map into SBB 30
-	memcpy(&se_mem[30][0], flag_enMap, flag_enMapLen);
+	memcpy(&se_mem[SCREENBLOCK_MAP][0], flag_enMap, flag_enMapLen);
 
 }
 
@@ -159,9 +161,9 @@ void flag_sc()
 	// Load palette
 	memcpy(pal_bg_mem, flag_scPal, flag_scPalLen);
 	// Load tiles into CBB 0
-	memcpy(&tile_mem[0][0], flag_scTiles, flag_scTilesLen);
+	memcpy(&tile_mem[CHARBLOCK_MAP][0], flag_scTiles, flag_scTilesLen);
 	// Load map into SBB 30
-	memcpy(&se_mem[30][0], flag_scMap, flag_scMapLen);
+	memcpy(&se_mem[SCREENBLOCK_MAP][0], flag_scMap, flag_scMapLen);
 }
 
 void flag_cy()
@@ -169,16 +171,21 @@ void flag_cy()
 	// Load palette
 	memcpy(pal_bg_mem, flag_cyPal, flag_cyPalLen);
 	// Load tiles into CBB 0
-	memcpy(&tile_mem[0][0], flag_cyTiles, flag_cyTilesLen);
+	memcpy(&tile_mem[CHARBLOCK_MAP][0], flag_cyTiles, flag_cyTilesLen);
 	// Load map into SBB 30
-	memcpy(&se_mem[30][0], flag_cyMap, flag_cyMapLen);
+	memcpy(&se_mem[SCREENBLOCK_MAP][0], flag_cyMap, flag_cyMapLen);
 }
 
+void sc_battle_tick()
+{
 
+}
+
+bool flag_display = false;
 
 void sc_battle_complete() {
 	// Test: flip tile visibility status of every tile and update fog
-	if (key_is_down(KEY_A)) {
+	if (key_is_down(KEY_R)) {
 		for(size_t i = 0; i < MAP_W * MAP_H; i++) {
 			visibleMapTiles[i] = !visibleMapTiles[i];
 		}
@@ -190,10 +197,37 @@ void sc_battle_complete() {
 		updateUnits();
 	}
 	// Test: cycle turn between teams
-	if (key_hit(KEY_B)) {
-		startTurnFor((currentTeam + 1) % 3);
-		updateUnits();
-		updateFog();
+	if (key_hit(KEY_A)) {
+		if(!flag_display) {
+			// Hide all sprites
+			for(int i = 0; i < MAX_UNITS * 3; i++) {
+				obj_hide(&unit_objs[i]);
+			}
+			obj_copy(obj_mem, unit_objs, MAX_UNITS * 3);
+			// Show flag
+			switch (currentTeam)
+			{
+			case TEAM_ENGLAND:
+				flag_cy();
+				break;
+			case TEAM_CYMRU:
+				flag_sc();
+				break;
+			case TEAM_SCOTLAND:
+				flag_en();
+				break;
+			default:
+				break;
+			}
+		} else {
+			// TODO: This is yoinked from init_map to avoid duplicating palette/tileset repeatedly, should probably be a function of its own
+			initMap();
+
+			startTurnFor((currentTeam + 1) % 3);
+			updateUnits();
+			updateFog();
+		}
+		flag_display = !flag_display;
 	}
 }
 
