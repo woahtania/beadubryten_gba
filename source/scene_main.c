@@ -66,6 +66,7 @@ void sc_main_tick() {
             guidePage += 1;
             if (guidePage == 11) {
                 guidePage = -1;
+                isGuide = false;
                 memcpy(vid_mem, menu_startBitmap, menu_startBitmapLen);
             } else {
                 memcpy(vid_mem, guideBitmaps[guidePage], guideLens[guidePage]);
