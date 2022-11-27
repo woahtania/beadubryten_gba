@@ -90,9 +90,17 @@ void calculateVisibleTiles(int team)
         struct Unit u = allUnits[loadedUnits[i].type];
         if (u.team == team)
         {
-            int r = u.stats[BUFF_SIGHT];
             int x = loadedUnits[i].x;
             int y = loadedUnits[i].y;
+            struct Tile tile = allTiles[mapTiles[(y * MAP_W) + x] - 1];
+            int sightModifier = 0;
+            if (tile.buffType == BUFF_SIGHT)
+            {
+                sightModifier += (tile.team == team) ? tile.buffStrength : -(tile.buffStrength);
+            }
+
+            int r = u.stats[BUFF_SIGHT] + sightModifier;
+
             int d = 0;
             for (int a = 0; a <= r; a++)
             {
@@ -107,7 +115,6 @@ void calculateVisibleTiles(int team)
                     }
                 }
             }
-
         }
     }
     for (int i = 0; i < MAX_UNITS * 3; i++)
@@ -243,7 +250,19 @@ bool attackUnit(int unitID, int targetUnitID)
     if (totalDistance <= 1 || (totalDistance <= 2 && u.type == TYPE_WATER))
     {
         target.health -= u.stats[BUFF_STRENGTH];
-        loadedUnits[targetUnitID].health = clamp(target.health, 0, 10);
+        struct Tile currentTile = allTiles[mapTiles[(curr.y * MAP_W) + curr.x]];
+
+        int damage = u.stats[BUFF_STRENGTH];
+        if (currentTile.buffType == BUFF_STRENGTH && currentTile.team == u.team)
+        {
+            damage += currentTile.buffStrength;
+        }
+        else if (currentTile.buffType == BUFF_STRENGTH && currentTile.team != u.team)
+        {
+            damage -= currentTile.buffStrength;
+        }
+
+        loadedUnits[targetUnitID].health = clamp(target.health - clamp(damage, 0, 8), 0, 8);
         if (loadedUnits[targetUnitID].health <= 0)
             loadedUnits[targetUnitID].isVisibleThisTurn = false;
         return true;
