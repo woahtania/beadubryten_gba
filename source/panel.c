@@ -90,7 +90,10 @@ void openPanel() {
     struct MUnit unit = loadedUnits[unitId];
     se_mem[SCREENBLOCK_UI][PANELLOC_CURHEALTH] = TILELOC_CURHEALTH + unit.health-1;
     se_mem[SCREENBLOCK_UI][PANELLOC_MAXHEALTH] = TILELOC_MAXHEALTH + allUnits[unit.type].stats[BUFF_STRENGTH]-1;
-    se_mem[SCREENBLOCK_UI][PANELLOC_CURWALK] = TILELOC_CURWALK + unit.movement-1;
+    if (unit.movement == 0)
+        se_mem[SCREENBLOCK_UI][PANELLOC_CURWALK] = 8;
+    else
+        se_mem[SCREENBLOCK_UI][PANELLOC_CURWALK] = TILELOC_CURWALK + unit.movement-1;
     se_mem[SCREENBLOCK_UI][PANELLOC_MAXWALK] = TILELOC_MAXWALK + allUnits[unit.type].stats[BUFF_SPEED]-1;
     se_mem[SCREENBLOCK_UI][PANELLOC_STR] = TILELOC_STRVIS + allUnits[unit.type].stats[BUFF_STRENGTH]-1;
     se_mem[SCREENBLOCK_UI][PANELLOC_VIS] = TILELOC_STRVIS + allUnits[unit.type].stats[BUFF_SIGHT]-1;
