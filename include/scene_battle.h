@@ -1,6 +1,16 @@
 #ifndef SCENE_BATTLE_H
 #define SCENE_BATTLE_H
 
+#define CONTROL_BATTLEFIELD 0
+#define CONTROL_UNITMOVE 1
+#define CONTROL_ENDTURN 2
+#define CONTROL_PANELOPEN 3
+#define CONTROL_UNITATK 4
+
+extern struct Cursor cursor;
+
+extern int controlStatus;
+
 void sc_battle_init();
 
 void sc_battle_tick();
