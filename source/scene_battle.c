@@ -351,6 +351,8 @@ void sc_battle_tick()
 			int unit = unitAt(cursor.x, cursor.y);
 			if (unit != -1 && loadedUnits[unit].movement > 0) {
 				cursor.selectedUnitForMovement = unit;
+				controlStatus = CONTROL_UNITMOVE;
+					cursor.selectedUnitForFrames = 0;
 				
 			}
 		}
