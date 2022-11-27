@@ -309,3 +309,36 @@ void loadUnits(struct UnitSpawn *spawns)
         loadedUnits[i] = (struct MUnit){us.type, allUnits[us.type].stats[BUFF_STRENGTH], 0, true, false, us.x, us.y};
     }
 }
+
+bool canTeamContinue(int team)
+{
+    int totalUnits;
+    for (int i = 0; i < MAX_UNITS * 3; i++)
+    {
+        struct MUnit mu = loadedUnits[i];
+        struct Unit u = allUnits[mu.type];
+        if (mu.health >= 1 && u.team == team)
+            totalUnits++;
+    }
+    return totalUnits >= 1;
+}
+
+int hasTeamWon()
+{
+    bool teamsWithSignature[3];
+    for (int i = 0; i < MAX_UNITS * 3; i++)
+    {
+        struct MUnit mu = loadedUnits[i];
+        struct Unit u = allUnits[mu.type];
+        if (u.isSignatureUnit && mu.health >= 1)
+            teamsWithSignature[u.team] = true;
+    }
+    if (teamsWithSignature[0] && !teamsWithSignature[1] && !teamsWithSignature[2])
+        return 0;
+    if (!teamsWithSignature[0] && teamsWithSignature[1] && !teamsWithSignature[2])
+        return 1;
+    if (!teamsWithSignature[0] && !teamsWithSignature[1] && teamsWithSignature[2])
+        return 2;
+
+    return -1;
+}

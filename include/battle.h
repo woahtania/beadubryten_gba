@@ -129,4 +129,8 @@ void loadUnits(struct UnitSpawn* spawns);
 
 int unitAt(int x, int y);
 
+bool canTeamContinue(int team);
+
+int hasTeamWon();
+
 #endif

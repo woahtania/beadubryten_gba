@@ -512,6 +512,12 @@ bool flag_display = false;
 void sc_battle_complete() {
 	if ((key_hit(KEY_START) && controlStatus == CONTROL_BATTLEFIELD) || frame1 || (controlStatus == CONTROL_ENDTURN && key_hit(KEY_A)))
 	{
+		int teamWon = hasTeamWon();
+		if (teamWon != -1)
+		{
+			// change to victory screen
+			return;
+		}
 		frame1 = false;
 		if(!flag_display) {
 			// Hide all sprites
@@ -524,22 +530,28 @@ void sc_battle_complete() {
 			REG_BG1HOFS = 0;
 			REG_BG1VOFS = 0;
 			cursor = (struct Cursor){0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1};
-      
+
 			controlStatus = CONTROL_ENDTURN;
 			obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], -32, -32);
 
-			// Show flag and play song
-			switch (currentTeam)
+			int nextTeam;
+			do
 			{
-			case TEAM_ENGLAND:
+				nextTeam = (currentTeam + 1) % 3;
+			} while (!canTeamContinue(nextTeam));
+
+			// Show flag and play song
+			switch (nextTeam)
+			{
+			case TEAM_CYMRU:
 				flag_cy();
 				changeSong(MOD_CYMRU);
 				break;
-			case TEAM_CYMRU:
+			case TEAM_SCOTLAND:
 				flag_sc();
 				changeSong(MOD_SCOTLAND);
 				break;
-			case TEAM_SCOTLAND:
+			case TEAM_ENGLAND:
 				flag_en();
 				changeSong(MOD_ENGLAND);
 				break;
