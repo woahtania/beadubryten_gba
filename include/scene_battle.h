@@ -39,4 +39,9 @@ struct Cursor{
     int selectedUnitForAtk;
 };
 
+struct StoredCamera
+{
+    int x, y;
+};
+
 #endif

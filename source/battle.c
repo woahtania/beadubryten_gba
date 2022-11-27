@@ -33,25 +33,25 @@ const struct Unit allUnits[12] = {
      (int[3]){6, 8, 6}, true, 10},
 
     {"Longboat", TEAM_SCOTLAND, TYPE_WATER,
-     (int[3]){4, 3, 4}, true, 4}, // total 11
+     (int[3]){4, 3, 4}, false, 4}, // total 11
     {"Clansmen", TEAM_SCOTLAND, TYPE_LAND,
-     (int[3]){2, 3, 1}, true, 5}, // total 6
+     (int[3]){2, 3, 1}, false, 5}, // total 6
     {"Teuchtars", TEAM_SCOTLAND, TYPE_AIR,
-     (int[3]){3, 2, 1}, true, 2}, // total 6
+     (int[3]){3, 2, 1}, false, 2}, // total 6
 
     {"Mountaineers", TEAM_ENGLAND, TYPE_AIR,
-     (int[3]){3, 1, 2}, true, 2}, // total 6
+     (int[3]){3, 1, 2}, false, 2}, // total 6
     {"Privateers", TEAM_ENGLAND, TYPE_WATER,
-     (int[3]){2, 2, 2}, true, 4}, // total 6
+     (int[3]){2, 2, 2}, false, 4}, // total 6
     {"Cavalry", TEAM_ENGLAND, TYPE_LAND,
-     (int[3]){3, 3, 5}, true, 5}, // total 11
+     (int[3]){3, 3, 5}, false, 5}, // total 11
 
     {"Rangers", TEAM_CYMRU, TYPE_AIR,
-     (int[3]){3, 5, 3}, true, 2}, // total 11
+     (int[3]){3, 5, 3}, false, 2}, // total 11
     {"Fishermen", TEAM_CYMRU, TYPE_WATER,
-     (int[3]){1, 2, 3}, true, 4}, // total 6
+     (int[3]){1, 2, 3}, false, 4}, // total 6
     {"Spearmen", TEAM_CYMRU, TYPE_LAND,
-     (int[3]){1, 3, 2}, true, 5} // total 6
+     (int[3]){1, 3, 2}, false, 5} // total 6
 };
 
 void floodFillVisibleFrom(int x, int y)
