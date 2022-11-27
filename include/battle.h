@@ -83,7 +83,7 @@ extern const struct Tile allTiles[12];
 /**
  * The current map's tiles
  */
-extern const int mapTiles[MAP_W * MAP_H];
+extern int mapTiles[MAP_W * MAP_H];
 
 /**
  * The current map's visible tiles

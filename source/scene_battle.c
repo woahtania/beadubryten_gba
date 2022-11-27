@@ -67,6 +67,10 @@ void initUnits() {
 
 void initMap()
 {
+	for (int i = 0; i < MAP_W * MAP_H; i++)
+	{
+		mapTiles[i] = battlemapTileIDs[i];
+	}
 	// Load palette
 	memcpy(pal_bg_mem, battlemapPal, battlemapPalLen);
 	// Load tiles into CBB 0
@@ -303,7 +307,7 @@ void sc_battle_tick()
 				struct MUnit mu = loadedUnits[i];
 				if (mu.x == cursor.x && mu.y == cursor.y)
 				{
-					if (mu.movement > 0)
+					if (mu.movement >= 1)
 					{
 						cursor.selectedUnitForMovement = i;
 					}
@@ -316,6 +320,7 @@ void sc_battle_tick()
 			{
 				loadedUnits[cursor.selectedUnitForMovement].isVisibleThisTurn = true;
 				cursor.selectedUnitForMovement = -1;
+				updateFog();
 			}
 			else
 			{
