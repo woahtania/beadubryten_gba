@@ -325,16 +325,9 @@ void sc_battle_tick()
 	{
 		if (cursor.selectedUnitForMovement == -1)
 		{
-			for (int i = 0; i < MAX_UNITS * 3; i++)
-			{
-				struct MUnit mu = loadedUnits[i];
-				if (mu.x == cursor.x && mu.y == cursor.y)
-				{
-					if (mu.movement > 0)
-					{
-						cursor.selectedUnitForMovement = i;
-					}
-				}
+			int unit = unitAt(cursor.x, cursor.y);
+			if (unit != -1 && loadedUnits[unit].movement > 0) {
+				cursor.selectedUnitForMovement = unit;
 			}
 		}
 		else

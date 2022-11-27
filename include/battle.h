@@ -125,4 +125,6 @@ bool attackUnit(int unitID, int targetUnitID);
 
 void loadUnits(struct UnitSpawn* spawns);
 
+int unitAt(int x, int y);
+
 #endif

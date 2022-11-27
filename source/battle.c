@@ -119,6 +119,18 @@ void calculateVisibleTiles(int team)
     }
 }
 
+int unitAt(int x, int y) {
+    for (int i = 0; i < MAX_UNITS * 3; i++)
+    {
+        struct MUnit mu = loadedUnits[i];
+        if (mu.x == x && mu.y == y)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void startTurnFor(int team)
 {
     calculateVisibleTiles(team);
