@@ -196,6 +196,8 @@ void sc_battle_init()
 
 	loadUnits(&battlemapSpawns);
 	startTurnFor(TEAM_SCOTLAND);
+	changeSong(MOD_SCOTLAND);
+	quietSong();
 
 	initUnits();
 
@@ -366,7 +368,7 @@ void sc_battle_tick()
 			if (unit != -1 && loadedUnits[unit].movement > 0) {
 				cursor.selectedUnitForMovement = unit;
 				controlStatus = CONTROL_UNITMOVE;
-					cursor.selectedUnitForFrames = 0;
+				cursor.selectedUnitForFrames = 0;
 				playSfx(SFX_MOVE_SELECT);
 			}
 		}
@@ -488,17 +490,20 @@ void sc_battle_complete() {
 			REG_BG1HOFS = 0;
 			REG_BG1VOFS = 0;
 			cursor = (struct Cursor){0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1};
-			// Show flag
+			// Show flag and play song
 			switch (currentTeam)
 			{
 			case TEAM_ENGLAND:
 				flag_cy();
+				changeSong(MOD_CYMRU);
 				break;
 			case TEAM_CYMRU:
 				flag_sc();
+				changeSong(MOD_SCOTLAND);
 				break;
 			case TEAM_SCOTLAND:
 				flag_en();
+				changeSong(MOD_ENGLAND);
 				break;
 			default:
 				break;
@@ -510,6 +515,7 @@ void sc_battle_complete() {
 			initPanel();
 			startTurnFor((currentTeam + 1) % 3);
 			updateFog();
+			quietSong();
 		}
 		flag_display = !flag_display;
 	}

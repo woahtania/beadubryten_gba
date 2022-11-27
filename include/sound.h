@@ -10,4 +10,8 @@ void updateSound();
 
 void playSfx(mm_word sfxId);
 
+void changeSong(mm_word songId);
+
+void quietSong();
+
 #endif

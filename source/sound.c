@@ -16,3 +16,12 @@ void playSfx(mm_word sfxId) {
     mmEffect(sfxId);
 }
 
+void changeSong(mm_word songId) {
+    mmSetModuleVolume(128);
+    
+    mmStart(songId, MM_PLAY_LOOP);
+}
+
+void quietSong() {
+    mmSetModuleVolume(64);
+}
