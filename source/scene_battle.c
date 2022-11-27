@@ -27,7 +27,14 @@
 #define SCREENBLOCK_MAP 28
 #define SCREENBLOCK_UNIT 24
 
-#define UTIL_SPRITE_ID(i) (MAX_UNITS * 3) + i
+#define UTIL_SPRITE_ID(i) (MAX_UNITS * 6) + i
+
+#define CONTROL_BATTLEFIELD 0
+#define CONTROL_UNITMOVE 1
+#define CONTROL_ENDTURN 2
+#define CONTROL_PANELOPEN 3
+
+int controlStatus = CONTROL_BATTLEFIELD;
 
 bool visibleMapTiles[MAP_W * MAP_H];
 
@@ -39,6 +46,16 @@ size_t tile2MapId(size_t tile_x, size_t tile_y)
 
 OBJ_ATTR unit_objs[128];
 struct Cursor cursor;
+
+int health2TileID(int health) {
+	// If unit is dead 
+	if (health <= 0) {
+		// Return last sprite (which should be blank)
+		return ATTR2_ID_MASK - 1;
+	} 
+
+	return (13 * 8) + ((health-1) * 2);
+}
 
 void initUnits() {
 	// Load the spritesheet
@@ -53,13 +70,17 @@ void initUnits() {
 		// Set the tile_id to the tile in the spritesheet for that unit
 		int tile_id = 8 * loadedUnits[i].type;
 		// Set sprite to a 16x16 square, 256 colour, using palette 0 and the tileID set above
-		obj_set_attr(&unit_objs[i], ATTR0_SQUARE | ATTR0_8BPP, ATTR1_SIZE_16, ATTR2_PALBANK(0) | tile_id);
+		obj_set_attr(&unit_objs[i], ATTR0_SQUARE | ATTR0_8BPP, ATTR1_SIZE_16, ATTR2_PALBANK(0) | ATTR2_PRIO(2) | tile_id);
 		// Set position based on unit position
 		// TODO: this needs to account for camera position
-		obj_set_pos(&unit_objs[i], loadedUnits[i].x * 32, loadedUnits[i].y * 32);
+		obj_set_pos(&unit_objs[i], 0, 0);
+
+		// Set health indicators
+		obj_set_attr(&unit_objs[MAX_UNITS * 3 + i], ATTR0_SQUARE | ATTR0_8BPP, ATTR1_SIZE_8x8, ATTR2_PALBANK(0)| ATTR2_PRIO(1) | health2TileID(loadedUnits[i].health));
+		obj_set_pos(&unit_objs[MAX_UNITS * 3 + i], 0, 0);
 	}
 
-	obj_set_attr(&unit_objs[UTIL_SPRITE_ID(0)], ATTR0_SQUARE | ATTR0_8BPP, ATTR1_SIZE_16, ATTR2_PALBANK(0) | 12 * 8);
+	obj_set_attr(&unit_objs[UTIL_SPRITE_ID(0)], ATTR0_SQUARE | ATTR0_8BPP, ATTR1_SIZE_16, ATTR2_PALBANK(0) | ATTR2_PRIO(0) | 12 * 8);
 	obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], 80, 30);
 
 	obj_copy(obj_mem, unit_objs, 128);
@@ -135,17 +156,23 @@ void updateUnits() {
 		int obj_y = loadedUnits[i].y * 16 - (cursor.camY);
 		if (obj_x > -16 && obj_x <= SCREEN_WIDTH && obj_y > -16 && obj_y <= SCREEN_HEIGHT) {
 			obj_set_pos(&unit_objs[i], obj_x, obj_y);
-			// (un)hide unit based on visible status
+			obj_set_pos(&unit_objs[MAX_UNITS * 3 + i], obj_x - 3, obj_y - 3);
+			// (un)hide unit and health based on visible status
 			if (loadedUnits[i].isVisibleThisTurn) {
 				// Set regular rendering mode
 				obj_unhide(&unit_objs[i], ATTR0_REG);
+				obj_unhide(&unit_objs[MAX_UNITS * 3 + i], ATTR0_REG);
+				BFN_SET((&unit_objs[MAX_UNITS * 3 + i])->attr2, health2TileID(loadedUnits[i].health), ATTR2_ID);
+				//obj_set_attr(&unit_objs[MAX_UNITS * 3 + i], ATTR0_SQUARE | ATTR0_8BPP, ATTR1_SIZE_8x8, ATTR2_PALBANK(0)| ATTR2_PRIO(1) | health2TileID(loadedUnits[i].health));
 			} else {
 				// Set disabled rendering mode
 				obj_hide(&unit_objs[i]);
+				obj_hide(&unit_objs[MAX_UNITS * 3 + i]);
 			}
 		}
 		else { 
 			obj_hide(&unit_objs[i]);
+			obj_hide(&unit_objs[MAX_UNITS * 3 + i]);
 		}
 
 	}
@@ -159,7 +186,7 @@ void sc_battle_init()
 	// Set Mode1 (4 backgrounds), enable bg1
     REG_DISPCNT = DCNT_MODE1 | DCNT_BG0 | DCNT_OBJ | DCNT_OBJ_1D;
 
-	REG_BG0CNT = BG_CBB(CHARBLOCK_MAP) | BG_SBB(SCREENBLOCK_MAP) | BG_8BPP | BG_REG_64x64;
+	REG_BG0CNT = BG_CBB(CHARBLOCK_MAP) | BG_SBB(SCREENBLOCK_MAP) | BG_8BPP | BG_REG_64x64 | BG_PRIO(3);
 
 	initMap();
 
@@ -355,9 +382,8 @@ void sc_battle_complete() {
 		if(!flag_display) {
 			// Hide all sprites
 			for(int i = 0; i < MAX_UNITS * 3; i++) {
-				obj_hide(&unit_objs[i]);
+				loadedUnits[i].isVisibleThisTurn = false;
 			}
-			obj_copy(obj_mem, unit_objs, MAX_UNITS * 3);
 			// Reset camera
 			REG_BG0HOFS = 0;
 			REG_BG0VOFS = 0;
