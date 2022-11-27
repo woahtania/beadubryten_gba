@@ -120,12 +120,30 @@ void calculateVisibleTiles(int team)
     }
 }
 
+int unitAt(int x, int y) {
+    for (int i = 0; i < MAX_UNITS * 3; i++)
+    {
+        struct MUnit mu = loadedUnits[i];
+        if (mu.x == x && mu.y == y)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void startTurnFor(int team)
 {
     calculateVisibleTiles(team);
     for (int i = 0; i < MAX_UNITS * 3; i++)
     {
         struct Unit u = allUnits[loadedUnits[i].type];
+        if (loadedUnits[i].health <= 0)
+        {
+            loadedUnits[i].isVisibleThisTurn = false;
+            loadedUnits[i].hasAttackedThisTurn = true;
+            loadedUnits[i].movement = 0;
+        }
         if (u.team == team)
         {
             loadedUnits[i].hasAttackedThisTurn = false;
@@ -190,13 +208,13 @@ bool moveUnitTo(int unitID, int x, int y)
     if (speedBuff != 0)
         speedBuff = (curr.movement / speedBuff) / 2;
 
-    if (xDist + yDist > loadedUnits[unitID].movement + speedBuff)
+    if (totalDistance > loadedUnits[unitID].movement + speedBuff)
     {
         return false;
     }
     loadedUnits[unitID].x = x;
     loadedUnits[unitID].y = y;
-    loadedUnits[unitID].movement -= xDist + yDist;
+    loadedUnits[unitID].movement -= totalDistance;
     calculateVisibleTiles(allUnits[loadedUnits[unitID].type].team);
     return true;
 }
@@ -214,6 +232,7 @@ bool attackUnit(int unitID, int targetUnitID)
     if (totalDistance <= 1 || (totalDistance <= 2 && u.type == TYPE_WATER))
     {
         target.health -= u.stats[BUFF_STRENGTH];
+        loadedUnits[targetUnitID].health = clamp(target.health, 0, 10);
         return true;
     }
     return false;

@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "util.h"
+
 #define TEAM_NONE -1
 #define TEAM_ENGLAND 0
 #define TEAM_CYMRU 1
@@ -124,5 +126,7 @@ bool moveUnitTo(int unitID, int x, int y);
 bool attackUnit(int unitID, int targetUnitID);
 
 void loadUnits(struct UnitSpawn* spawns);
+
+int unitAt(int x, int y);
 
 #endif
