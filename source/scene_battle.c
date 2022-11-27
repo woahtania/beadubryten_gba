@@ -4,6 +4,7 @@
 #include "scene_battle.h"
 #include "battlemap.h"
 #include "battle.h"
+#include "util.h"
 
 #include "sprites.h"
 
@@ -21,6 +22,8 @@
 
 #define SCREENBLOCK_MAP 28
 #define SCREENBLOCK_UNIT 24
+
+#define UTIL_SPRITE_ID(i) (MAX_UNITS * 3) + i
 
 bool visibleMapTiles[MAP_W * MAP_H];
 
@@ -40,7 +43,7 @@ void initUnits()
 	memcpy(pal_obj_mem, spritesPal, spritesPalLen);
 
 	// Initialise an OAM object for each unit
-	oam_init(unit_objs, 1);
+	oam_init(unit_objs, 128); // +1 for utility sprites 🗿
 
 	for (int i = 0; i < MAX_UNITS * 3; i++)
 	{
@@ -49,7 +52,10 @@ void initUnits()
 		obj_set_pos(&unit_objs[i], loadedUnits[i].x * 32, loadedUnits[i].y * 32);
 	}
 
-	obj_copy(obj_mem, unit_objs, MAX_UNITS * 3);
+	obj_set_attr(&unit_objs[UTIL_SPRITE_ID(0)], ATTR0_SQUARE | ATTR0_8BPP, ATTR1_SIZE_16, ATTR2_PALBANK(0) | 12 * 8);
+	obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], 30, 80);
+
+	obj_copy(obj_mem, unit_objs, 128);
 }
 
 void initMap()
@@ -138,7 +144,7 @@ void updateUnits()
 {
 	for (int i = 0; i < MAX_UNITS * 3; i++)
 	{
-		obj_set_pos(&unit_objs[i], loadedUnits[i].x * 32 - (cursor.x*16), loadedUnits[i].y * 32 - (cursor.y*16));
+		obj_set_pos(&unit_objs[i], loadedUnits[i].x * 32 - (cursor.camX), loadedUnits[i].y * 32 - (cursor.camY));
 		if (loadedUnits[i].isVisibleThisTurn)
 		{
 			// Set regular rendering mode
@@ -150,9 +156,8 @@ void updateUnits()
 			obj_hide(&unit_objs[i]);
 		}
 	}
-	obj_copy(obj_mem, unit_objs, MAX_UNITS * 3);
+	obj_copy(obj_mem, unit_objs, 128);
 }
-
 
 void procKey(int key, int *frameVal, int *changeVal, int delta)
 {
@@ -195,7 +200,7 @@ void sc_battle_tick()
 	procKey(KEY_RIGHT, &cursor.hf_r, &cursor.x, 1);
 
 	cursor.x = clamp(cursor.x, 0, MAP_W);
-	cursor.y = clamp(cursor.y, 0, MAP_H - 10);
+	cursor.y = clamp(cursor.y, 0, MAP_H );
 	if (key_hit(KEY_B))
 	{
 		loadedUnits[0].isVisibleThisTurn = !loadedUnits[0].isVisibleThisTurn;
@@ -209,10 +214,65 @@ void sc_battle_complete()
 	{
 		switchScene(1);
 	}
-	REG_BG0HOFS = cursor.x * 16;
-	REG_BG0VOFS = cursor.y * 16;
-			updateUnits();
+	obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], cursor.x * 16 - cursor.camX, cursor.y * 16 - cursor.camY);
 
+	int cursorScreenPosX;
+	int camX = cursor.camX / 16;
+	do
+	{
+		cursorScreenPosX = cursor.x - camX;
+		camX--;
+	} while (cursorScreenPosX < 2);
+
+	do
+	{
+		cursorScreenPosX = cursor.x - camX;
+		camX++;
+	} while (cursorScreenPosX > 11);
+
+	cursor.targetCamX = clamp(camX * 16, 0, 272);
+
+	int diff = abs(cursor.camX - cursor.targetCamX);
+	int delta = 1;
+	if (diff < 24)
+		delta = 1;
+	else if (diff < 48)
+		delta = 2;
+	else
+		delta = 4;
+
+	cursor.camX = lerp(cursor.camX, cursor.targetCamX, delta);
+
+	int cursorScreenPosY;
+	int camY = cursor.camY / 16;
+	do
+	{
+		cursorScreenPosY = cursor.y - camY;
+		camY--;
+	} while (cursorScreenPosY < 2);
+
+	do
+	{
+		cursorScreenPosY = cursor.y - camY;
+		camY++;
+	} while (cursorScreenPosY > 8);
+
+	cursor.targetCamY = clamp(camY * 16, 0, 352);
+
+	diff = abs(cursor.camY - cursor.targetCamY);
+	delta = 1;
+	if (diff < 24)
+		delta = 1;
+	else if (diff < 48)
+		delta = 2;
+	else
+		delta = 4;
+
+	cursor.camY = lerp(cursor.camY, cursor.targetCamY, delta);
+
+	REG_BG0HOFS = cursor.camX;
+	REG_BG0VOFS = cursor.camY;
+	updateUnits();
 }
 
 void sc_battle_deconstruct() {}
