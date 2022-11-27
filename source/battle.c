@@ -162,8 +162,12 @@ void startTurnFor(int team)
 
 bool moveUnitTo(int unitID, int x, int y)
 {
-    if (unitAt(x, y) != -1)
-        return false;
+    for (int i = 0; i < MAX_UNITS * 3; i++)
+    {
+        struct MUnit m = loadedUnits[i];
+        if (m.x == x && m.y == y && m.health >= 1)
+            return false;
+    }
 
     struct MUnit curr = loadedUnits[unitID];
     struct Unit u = allUnits[curr.type];
@@ -240,6 +244,8 @@ bool attackUnit(int unitID, int targetUnitID)
     {
         target.health -= u.stats[BUFF_STRENGTH];
         loadedUnits[targetUnitID].health = clamp(target.health, 0, 10);
+        if (loadedUnits[targetUnitID].health <= 0)
+            loadedUnits[targetUnitID].isVisibleThisTurn = false;
         return true;
     }
     return false;
