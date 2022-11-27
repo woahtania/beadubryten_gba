@@ -29,6 +29,12 @@
 
 #define UTIL_SPRITE_ID(i) (MAX_UNITS * 6) + i
 
+#define CONTROL_BATTLEFIELD 0
+#define CONTROL_UNITMOVE 1
+#define CONTROL_ENDTURN 2
+#define CONTROL_PANELOPEN 3
+
+int controlStatus = CONTROL_BATTLEFIELD;
 
 bool visibleMapTiles[MAP_W * MAP_H];
 
