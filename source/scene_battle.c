@@ -4,6 +4,7 @@
 #include "scene_battle.h"
 #include "battlemap.h"
 #include "battle.h"
+#include "util.h"
 
 #include "sprites.h"
 #include "flag_en.h"
@@ -12,7 +13,7 @@
 #include "battlemap_data.h"
 
 // The actual count of tiles
-#define BATTLEMAP_TILES_LEN ((battlemapTilesLen/64) + 1)
+#define BATTLEMAP_TILES_LEN ((battlemapTilesLen / 64) + 1)
 
 #define CHARBLOCK_MAP 0
 #define CHARBLOCK_UNIT 4
@@ -20,14 +21,24 @@
 #define SCREENBLOCK_MAP 28
 #define SCREENBLOCK_UNIT 24
 
+#define CHARBLOCK_MAP 0
+#define CHARBLOCK_UNIT 4
+
+#define SCREENBLOCK_MAP 28
+#define SCREENBLOCK_UNIT 24
+
+#define UTIL_SPRITE_ID(i) (MAX_UNITS * 3) + i
+
 bool visibleMapTiles[MAP_W * MAP_H];
 
-size_t tile2MapId(size_t tile_x, size_t tile_y) {
-	return (tile_y >=16 ? (32*64 + (tile_y*2 - 32)*32) : (tile_y * 64)) + 
-		(tile_x >= 16 ? (32*32 + (tile_x*2 - 32)) : tile_x*2);
+size_t tile2MapId(size_t tile_x, size_t tile_y)
+{
+	return (tile_y >= 16 ? (32 * 64 + (tile_y * 2 - 32) * 32) : (tile_y * 64)) +
+		   (tile_x >= 16 ? (32 * 32 + (tile_x * 2 - 32)) : tile_x * 2);
 }
 
 OBJ_ATTR unit_objs[128];
+struct Cursor cursor;
 
 void initUnits() {
 	// Load the spritesheet
@@ -36,12 +47,7 @@ void initUnits() {
 	memcpy(pal_obj_mem, spritesPal, spritesPalLen);
 
 	// Initialise an OAM object for each unit
-	oam_init(unit_objs, MAX_UNITS * 3);
-
-#include "flag_cy.h"
-#include "flag_en.h"
-#include "flag_sc.h"
-
+	oam_init(unit_objs, 128); // +1 for utility sprites 🗿
 
 	for(int i = 0; i < MAX_UNITS * 3; i++) {
 		// Set the tile_id to the tile in the spritesheet for that unit
@@ -52,11 +58,15 @@ void initUnits() {
 		// TODO: this needs to account for camera position
 		obj_set_pos(&unit_objs[i], loadedUnits[i].x * 32, loadedUnits[i].y * 32);
 	}
-	// Copy all unit objs to vram
-	obj_copy(obj_mem, unit_objs, MAX_UNITS * 3);
+
+	obj_set_attr(&unit_objs[UTIL_SPRITE_ID(0)], ATTR0_SQUARE | ATTR0_8BPP, ATTR1_SIZE_16, ATTR2_PALBANK(0) | 12 * 8);
+	obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], 30, 80);
+
+	obj_copy(obj_mem, unit_objs, 128);
 }
 
-void initMap() {
+void initMap()
+{
 	// Load palette
 	memcpy(pal_bg_mem, battlemapPal, battlemapPalLen);
 	// Load tiles into CBB 0
@@ -66,12 +76,14 @@ void initMap() {
 
 	// Find out the real palette length by looping until black (thanks grit)
 	u8 pal_len = 0;
-	while (battlemapPal[pal_len] != 0) {
+	while (battlemapPal[pal_len] != 0)
+	{
 		pal_len++;
 	}
 
 	// Create a fog of war palette by duplicating the current palette and halving the RGB values
-	for (u8 i = 0; i < pal_len; i++) {
+	for (u8 i = 0; i < pal_len; i++)
+	{
 		pal_bg_mem[pal_len + i] = ((pal_bg_mem[i] & 31) / 2) +
 								  ((((pal_bg_mem[i] >> 5) & 31) / 2) << 5) +
 								  ((((pal_bg_mem[i] >> 10) & 31) / 2) << 10);
@@ -115,7 +127,7 @@ void updateUnits() {
 		// Set position based on unit position
 		// TODO: this needs to account for camera position
 		// TODO: Needs to check the bounds of the screen as overflow will cause offscreen units to be rendered
-		obj_set_pos(&unit_objs[i], loadedUnits[i].x * 32, loadedUnits[i].y * 32);
+		obj_set_pos(&unit_objs[i], loadedUnits[i].x * 32 - (cursor.camX), loadedUnits[i].y * 32 - (cursor.camY));
 		// (un)hide unit based on visible status
 		if (loadedUnits[i].isVisibleThisTurn) {
 			// Set regular rendering mode
@@ -133,6 +145,7 @@ void sc_battle_init()
 {
 	// Set Mode1 (4 backgrounds), enable bg1
     REG_DISPCNT = DCNT_MODE1 | DCNT_BG0 | DCNT_OBJ | DCNT_OBJ_1D;
+
 	REG_BG0CNT = BG_CBB(CHARBLOCK_MAP) | BG_SBB(SCREENBLOCK_MAP) | BG_8BPP | BG_REG_64x64;
 
 	initMap();
@@ -176,6 +189,30 @@ void flag_cy()
 	memcpy(&se_mem[SCREENBLOCK_MAP][0], flag_cyMap, flag_cyMapLen);
 }
 
+void procKey(int key, int *frameVal, int *changeVal, int delta)
+{
+	if (key_is_down(key))
+	{
+		if (*frameVal <= 180)
+		{
+			if ((*frameVal) % 15 == 0)
+				*changeVal += delta;
+		}
+		else
+		{
+			if (*frameVal % 5 == 0)
+				*changeVal += delta;
+		}
+		(*frameVal)++;
+	}
+	else
+	{
+		*frameVal -= 2;
+		if (*frameVal <= 0)
+			*frameVal = 0;
+	}
+}
+
 void sc_battle_tick()
 {
 
@@ -184,19 +221,14 @@ void sc_battle_tick()
 bool flag_display = false;
 
 void sc_battle_complete() {
-	// Test: flip tile visibility status of every tile and update fog
-	if (key_is_down(KEY_R)) {
-		for(size_t i = 0; i < MAP_W * MAP_H; i++) {
-			visibleMapTiles[i] = !visibleMapTiles[i];
-		}
-		updateFog();
-	}
-	// Test: flip unit visibility status of unit 0 and update units
-	if (key_hit(KEY_B)) {
-		loadedUnits[0].isVisibleThisTurn = !loadedUnits[0].isVisibleThisTurn;
-		updateUnits();
-	}
-	// Test: cycle turn between teams
+	procKey(KEY_DOWN, &cursor.hf_d, &cursor.y, 1);
+	procKey(KEY_UP, &cursor.hf_u, &cursor.y, -1);
+	procKey(KEY_LEFT, &cursor.hf_l, &cursor.x, -1);
+	procKey(KEY_RIGHT, &cursor.hf_r, &cursor.x, 1);
+
+	cursor.x = clamp(cursor.x, 0, MAP_W);
+	cursor.y = clamp(cursor.y, 0, MAP_H );
+	
 	if (key_hit(KEY_A)) {
 		if(!flag_display) {
 			// Hide all sprites
@@ -222,13 +254,71 @@ void sc_battle_complete() {
 		} else {
 			// TODO: This is yoinked from init_map to avoid duplicating palette/tileset repeatedly, should probably be a function of its own
 			initMap();
-
 			startTurnFor((currentTeam + 1) % 3);
-			updateUnits();
 			updateFog();
 		}
 		flag_display = !flag_display;
 	}
+
+	obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], cursor.x * 16 - cursor.camX, cursor.y * 16 - cursor.camY);
+
+	int cursorScreenPosX;
+	int camX = cursor.camX / 16;
+	do
+	{
+		cursorScreenPosX = cursor.x - camX;
+		camX--;
+	} while (cursorScreenPosX < 2);
+
+	do
+	{
+		cursorScreenPosX = cursor.x - camX;
+		camX++;
+	} while (cursorScreenPosX > 11);
+
+	cursor.targetCamX = clamp(camX * 16, 0, 272);
+
+	int diff = abs(cursor.camX - cursor.targetCamX);
+	int delta = 1;
+	if (diff < 24)
+		delta = 1;
+	else if (diff < 48)
+		delta = 2;
+	else
+		delta = 4;
+
+	cursor.camX = lerp(cursor.camX, cursor.targetCamX, delta);
+
+	int cursorScreenPosY;
+	int camY = cursor.camY / 16;
+	do
+	{
+		cursorScreenPosY = cursor.y - camY;
+		camY--;
+	} while (cursorScreenPosY < 2);
+
+	do
+	{
+		cursorScreenPosY = cursor.y - camY;
+		camY++;
+	} while (cursorScreenPosY > 8);
+
+	cursor.targetCamY = clamp(camY * 16, 0, 352);
+
+	diff = abs(cursor.camY - cursor.targetCamY);
+	delta = 1;
+	if (diff < 24)
+		delta = 1;
+	else if (diff < 48)
+		delta = 2;
+	else
+		delta = 4;
+
+	cursor.camY = lerp(cursor.camY, cursor.targetCamY, delta);
+
+	REG_BG0HOFS = cursor.camX;
+	REG_BG0VOFS = cursor.camY;
+	updateUnits();
 }
 
 void sc_battle_deconstruct() {}
