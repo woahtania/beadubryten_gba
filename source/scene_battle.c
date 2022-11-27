@@ -518,12 +518,16 @@ void sc_battle_complete() {
 			for(int i = 0; i < MAX_UNITS * 3; i++) {
 				loadedUnits[i].isVisibleThisTurn = false;
 			}
+			teamcams[currentTeam].x = cursor.x;
+			teamcams[currentTeam].y = cursor.y;
 			// Reset camera
 			REG_BG1HOFS = 0;
 			REG_BG1VOFS = 0;
 			cursor = (struct Cursor){0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1};
       
 			controlStatus = CONTROL_ENDTURN;
+			obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], -32, -32);
+
 			// Show flag and play song
 			switch (currentTeam)
 			{
