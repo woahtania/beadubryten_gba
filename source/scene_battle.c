@@ -441,6 +441,8 @@ void sc_battle_tick()
 	{
 		b_hit = false;
 		controlStatus = CONTROL_BATTLEFIELD;
+		if (cursor.selectedUnitForMovement != -1)
+			loadedUnits[cursor.selectedUnitForMovement].isVisibleThisTurn = true;
 		cursor.selectedUnitForAtk = -1;
 		cursor.selectedUnitForMovement = -1;
 		cursor.selectedUnitForFrames = 0;

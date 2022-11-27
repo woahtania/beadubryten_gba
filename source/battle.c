@@ -162,6 +162,9 @@ void startTurnFor(int team)
 
 bool moveUnitTo(int unitID, int x, int y)
 {
+    if (unitAt(x, y) != -1)
+        return false;
+
     struct MUnit curr = loadedUnits[unitID];
     struct Unit u = allUnits[curr.type];
     int xDist = x - curr.x;
@@ -224,6 +227,10 @@ bool attackUnit(int unitID, int targetUnitID)
     struct MUnit curr = loadedUnits[unitID];
     struct MUnit target = loadedUnits[targetUnitID];
     struct Unit u = allUnits[curr.type];
+    struct Unit tu = allUnits[target.type];
+
+    if (u.team == tu.team)
+        return false;
 
     int xDist = abs(curr.x - target.x);
     int yDist = abs(curr.y - target.y);
