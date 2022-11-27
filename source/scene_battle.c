@@ -131,14 +131,14 @@ void updateUnits() {
 		int obj_y = loadedUnits[i].y * 16 - (cursor.camY);
 		if (obj_x > -16 && obj_x <= SCREEN_WIDTH && obj_y > -16 && obj_y <= SCREEN_HEIGHT) {
 			obj_set_pos(&unit_objs[i], obj_x, obj_y);
-		// (un)hide unit based on visible status
-		if (loadedUnits[i].isVisibleThisTurn) {
-			// Set regular rendering mode
-			obj_unhide(&unit_objs[i], ATTR0_REG);
-		} else {
-			// Set disabled rendering mode
-			obj_hide(&unit_objs[i]);
-		}
+			// (un)hide unit based on visible status
+			if (loadedUnits[i].isVisibleThisTurn) {
+				// Set regular rendering mode
+				obj_unhide(&unit_objs[i], ATTR0_REG);
+			} else {
+				// Set disabled rendering mode
+				obj_hide(&unit_objs[i]);
+			}
 		}
 		else { 
 			obj_hide(&unit_objs[i]);
@@ -221,14 +221,7 @@ void procKey(int key, int *frameVal, int *changeVal, int delta)
 	}
 }
 
-void sc_battle_tick()
-{
-
-}
-
-bool flag_display = false;
-
-void sc_battle_complete() {
+void updateCamera() {
 	procKey(KEY_DOWN, &cursor.hf_d, &cursor.y, 1);
 	procKey(KEY_UP, &cursor.hf_u, &cursor.y, -1);
 	procKey(KEY_LEFT, &cursor.hf_l, &cursor.x, -1);
@@ -236,38 +229,8 @@ void sc_battle_complete() {
 
 	cursor.x = clamp(cursor.x, 0, MAP_W);
 	cursor.y = clamp(cursor.y, 0, MAP_H );
-	
-	if (key_hit(KEY_A)) {
-		if(!flag_display) {
-			// Hide all sprites
-			for(int i = 0; i < MAX_UNITS * 3; i++) {
-				obj_hide(&unit_objs[i]);
-			}
-			obj_copy(obj_mem, unit_objs, MAX_UNITS * 3);
-			// Show flag
-			switch (currentTeam)
-			{
-			case TEAM_ENGLAND:
-				flag_cy();
-				break;
-			case TEAM_CYMRU:
-				flag_sc();
-				break;
-			case TEAM_SCOTLAND:
-				flag_en();
-				break;
-			default:
-				break;
-			}
-		} else {
-			// TODO: This is yoinked from init_map to avoid duplicating palette/tileset repeatedly, should probably be a function of its own
-			initMap();
-			startTurnFor((currentTeam + 1) % 3);
-			updateFog();
-		}
-		flag_display = !flag_display;
-	}
 
+	
 	obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], cursor.x * 16 - cursor.camX, cursor.y * 16 - cursor.camY);
 
 	int cursorScreenPosX;
@@ -326,6 +289,54 @@ void sc_battle_complete() {
 
 	REG_BG0HOFS = cursor.camX;
 	REG_BG0VOFS = cursor.camY;
+}
+
+void sc_battle_tick()
+{
+
+}
+
+bool flag_display = false;
+
+void sc_battle_complete() {
+	if (key_hit(KEY_A)) {
+		if(!flag_display) {
+			// Hide all sprites
+			for(int i = 0; i < MAX_UNITS * 3; i++) {
+				obj_hide(&unit_objs[i]);
+			}
+			obj_copy(obj_mem, unit_objs, MAX_UNITS * 3);
+			// Reset camera
+			REG_BG0HOFS = 0;
+			REG_BG0VOFS = 0;
+			// Show flag
+			switch (currentTeam)
+			{
+			case TEAM_ENGLAND:
+				flag_cy();
+				break;
+			case TEAM_CYMRU:
+				flag_sc();
+				break;
+			case TEAM_SCOTLAND:
+				flag_en();
+				break;
+			default:
+				break;
+			}
+		} else {
+			// TODO: This is yoinked from init_map to avoid duplicating palette/tileset repeatedly, should probably be a function of its own
+			initMap();
+			startTurnFor((currentTeam + 1) % 3);
+			updateFog();
+		}
+		flag_display = !flag_display;
+	}
+
+	if (!flag_display) {
+		updateCamera();
+	}
+
 	updateUnits();
 }
 
