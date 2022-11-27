@@ -4,18 +4,6 @@
   <export target="britwar..tsj" format="json"/>
  </editorsettings>
  <grid orientation="orthogonal" width="1" height="1"/>
- <tile id="5">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_1.png"/>
- </tile>
- <tile id="6">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_2.png"/>
- </tile>
- <tile id="7">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_3.png"/>
- </tile>
- <tile id="8">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_4.png"/>
- </tile>
  <tile id="0">
   <image width="16" height="16" source="../../../Downloads/l0_sprite_5.png"/>
  </tile>
@@ -30,6 +18,18 @@
  </tile>
  <tile id="4">
   <image width="16" height="16" source="../../../Downloads/l0_sprite_9.png"/>
+ </tile>
+ <tile id="5">
+  <image width="16" height="16" source="../../../Downloads/l0_sprite_1.png"/>
+ </tile>
+ <tile id="6">
+  <image width="16" height="16" source="../../../Downloads/l0_sprite_2.png"/>
+ </tile>
+ <tile id="7">
+  <image width="16" height="16" source="../../../Downloads/l0_sprite_3.png"/>
+ </tile>
+ <tile id="8">
+  <image width="16" height="16" source="../../../Downloads/l0_sprite_4.png"/>
  </tile>
  <tile id="9">
   <image width="16" height="16" source="../../../Downloads/l0_sprite_10.png"/>
