@@ -5,39 +5,39 @@
  </editorsettings>
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="0">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_5.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_04.png"/>
  </tile>
  <tile id="1">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_6.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_05.png"/>
  </tile>
  <tile id="2">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_7.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_03.png"/>
  </tile>
  <tile id="3">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_8.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_01.png"/>
  </tile>
  <tile id="4">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_9.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_02.png"/>
  </tile>
  <tile id="5">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_1.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_00.png"/>
  </tile>
  <tile id="6">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_2.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_07.png"/>
  </tile>
  <tile id="7">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_3.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_08.png"/>
  </tile>
  <tile id="8">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_4.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_06.png"/>
  </tile>
  <tile id="9">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_10.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_09.png"/>
  </tile>
  <tile id="10">
-  <image width="16" height="16" source="../../../Downloads/l0_sprite_11.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_10.png"/>
  </tile>
  <tile id="12">
-  <image width="16" height="16" source="../../../Downloads/sprite_11.png"/>
+  <image width="16" height="16" source="../../../Downloads/New Piskel(1)/sprite_11.png"/>
  </tile>
 </tileset>

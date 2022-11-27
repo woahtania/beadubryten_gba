@@ -34,6 +34,9 @@ int controlStatus = CONTROL_BATTLEFIELD;
 
 bool visibleMapTiles[MAP_W * MAP_H];
 
+// teleport camera for first frame after flag screen
+bool instaCamera;
+
 size_t tile2MapId(size_t tile_x, size_t tile_y)
 {
 	return (tile_y >= 16 ? (32 * 64 + (tile_y * 2 - 32) * 32) : (tile_y * 64)) +
@@ -42,6 +45,8 @@ size_t tile2MapId(size_t tile_x, size_t tile_y)
 
 OBJ_ATTR unit_objs[128];
 struct Cursor cursor;
+struct StoredCamera teamcams[3];
+bool frame1 = true;
 
 int health2TileID(int health) {
 	// If unit is dead 
@@ -195,6 +200,20 @@ void sc_battle_init()
 	initSound();
 
 	loadUnits(&battlemapSpawns);
+
+	// initialise cursor positions
+	for (int i = 0; i < MAX_UNITS * 3; i++)
+	{
+		struct MUnit mu = loadedUnits[i];
+		struct Unit u = allUnits[mu.type];
+
+		if (u.isSignatureUnit)
+		{
+			teamcams[u.team].x = mu.x;
+			teamcams[u.team].y = mu.y;
+		}
+	}
+
 	startTurnFor(TEAM_SCOTLAND);
 	changeSong(MOD_SCOTLAND);
 	quietSong();
@@ -212,7 +231,8 @@ void flag_en()
 	memcpy(&tile_mem[CHARBLOCK_MAP][0], flag_enTiles, flag_enTilesLen);
 	// Load map into SBB 30
 	memcpy(&se_mem[SCREENBLOCK_MAP][0], flag_enMap, flag_enMapLen);
-
+	cursor = (struct Cursor){teamcams[TEAM_ENGLAND].x, teamcams[TEAM_ENGLAND].y, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1};
+	instaCamera = true;
 }
 
 void flag_sc()
@@ -223,6 +243,8 @@ void flag_sc()
 	memcpy(&tile_mem[CHARBLOCK_MAP][0], flag_scTiles, flag_scTilesLen);
 	// Load map into SBB 30
 	memcpy(&se_mem[SCREENBLOCK_MAP][0], flag_scMap, flag_scMapLen);
+	cursor = (struct Cursor){teamcams[TEAM_SCOTLAND].x, teamcams[TEAM_SCOTLAND].y, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1};
+	instaCamera = true;
 }
 
 void flag_cy()
@@ -233,6 +255,8 @@ void flag_cy()
 	memcpy(&tile_mem[CHARBLOCK_MAP][0], flag_cyTiles, flag_cyTilesLen);
 	// Load map into SBB 30
 	memcpy(&se_mem[SCREENBLOCK_MAP][0], flag_cyMap, flag_cyMapLen);
+	cursor = (struct Cursor){teamcams[TEAM_CYMRU].x, teamcams[TEAM_CYMRU].y, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1};
+	instaCamera = true;
 }
 
 void procKey(int key, int *frameVal, int *changeVal, int delta)
@@ -338,6 +362,13 @@ void updateCamera() {
 		delta = 4;
 
 	cursor.camY = lerp(cursor.camY, cursor.targetCamY, delta);
+
+	if (instaCamera)
+	{
+		cursor.camX = cursor.targetCamX;
+		cursor.camY = cursor.targetCamY;
+		instaCamera = false;
+	}
 
 	REG_BG1HOFS = cursor.camX;
 	REG_BG1VOFS = cursor.camY;
@@ -479,8 +510,9 @@ void sc_battle_tick()
 bool flag_display = false;
 
 void sc_battle_complete() {
-	if (key_hit(KEY_START))
+	if ((key_hit(KEY_START) && controlStatus == CONTROL_BATTLEFIELD) || frame1 || (controlStatus == CONTROL_ENDTURN && key_hit(KEY_A)))
 	{
+		frame1 = false;
 		if(!flag_display) {
 			// Hide all sprites
 			for(int i = 0; i < MAX_UNITS * 3; i++) {
@@ -490,6 +522,8 @@ void sc_battle_complete() {
 			REG_BG1HOFS = 0;
 			REG_BG1VOFS = 0;
 			cursor = (struct Cursor){0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1};
+      
+			controlStatus = CONTROL_ENDTURN;
 			// Show flag and play song
 			switch (currentTeam)
 			{
@@ -514,7 +548,7 @@ void sc_battle_complete() {
 			initMap();		
 			initPanel();
 			startTurnFor((currentTeam + 1) % 3);
-			updateFog();
+			updateFog();			controlStatus = CONTROL_BATTLEFIELD;
 			quietSong();
 		}
 		flag_display = !flag_display;
