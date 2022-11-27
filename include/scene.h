@@ -4,6 +4,7 @@
 #define SCENE_INTRO 0
 #define SCENE_MENU 1
 #define SCENE_BATTLE 2
+#define SCENE_VICTORY 3
 
 /**
  * Struct for the function pointers of a Scene
