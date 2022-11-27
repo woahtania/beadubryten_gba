@@ -26,7 +26,7 @@ SOURCES		:= source resources
 INCLUDES	:= include resources
 DATA		:= data
 GRAPHICS	:= gfx
-MUSIC		:= audio
+AUDIO		:= audio
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -83,8 +83,8 @@ BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 GFXFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.bmp)))
 GFXFILES	+=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 
-ifneq ($(strip $(MUSIC)),)
-	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
+ifneq ($(strip $(AUDIO)),)
+	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(AUDIO)/*.*)),$(CURDIR)/$(AUDIO)/$(dir))
 	BINFILES += soundbank.bin
 endif
 
