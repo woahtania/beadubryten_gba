@@ -5,6 +5,7 @@
 #include "battlemap.h"
 #include "battle.h"
 #include "util.h"
+#include "panel.h"
 
 #include "sprites.h"
 #include "flag_en.h"
@@ -29,10 +30,6 @@
 
 #define UTIL_SPRITE_ID(i) (MAX_UNITS * 6) + i
 
-#define CONTROL_BATTLEFIELD 0
-#define CONTROL_UNITMOVE 1
-#define CONTROL_ENDTURN 2
-#define CONTROL_PANELOPEN 3
 
 int controlStatus = CONTROL_BATTLEFIELD;
 
@@ -180,11 +177,12 @@ void sc_battle_init()
 {
 	cursor.selectedUnitForMovement = -1;
 	// Set Mode1 (4 backgrounds), enable bg1
-    REG_DISPCNT = DCNT_MODE1 | DCNT_BG0 | DCNT_OBJ | DCNT_OBJ_1D;
+    REG_DISPCNT = DCNT_MODE1 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D;
 
-	REG_BG0CNT = BG_CBB(CHARBLOCK_MAP) | BG_SBB(SCREENBLOCK_MAP) | BG_8BPP | BG_REG_64x64 | BG_PRIO(3);
+	REG_BG1CNT = BG_CBB(CHARBLOCK_MAP) | BG_SBB(SCREENBLOCK_MAP) | BG_8BPP | BG_REG_64x64 | BG_PRIO(3);
 
 	initMap();
+	initPanel();
 
 	loadUnits(&battlemapSpawns);
 	startTurnFor(TEAM_SCOTLAND);
@@ -315,8 +313,8 @@ void updateCamera() {
 
 	cursor.camY = lerp(cursor.camY, cursor.targetCamY, delta);
 
-	REG_BG0HOFS = cursor.camX;
-	REG_BG0VOFS = cursor.camY;
+	REG_BG1HOFS = cursor.camX;
+	REG_BG1VOFS = cursor.camY;
 }
 
 void sc_battle_tick()
@@ -373,8 +371,8 @@ void sc_battle_complete() {
 				loadedUnits[i].isVisibleThisTurn = false;
 			}
 			// Reset camera
-			REG_BG0HOFS = 0;
-			REG_BG0VOFS = 0;
+			REG_BG1HOFS = 0;
+			REG_BG1VOFS = 0;
 			cursor = (struct Cursor){0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1};
 			// Show flag
 			switch (currentTeam)
@@ -392,8 +390,8 @@ void sc_battle_complete() {
 				break;
 			}
 		} else {
-			// TODO: This is yoinked from init_map to avoid duplicating palette/tileset repeatedly, should probably be a function of its own
-			initMap();
+			initMap();		
+			initPanel();
 			startTurnFor((currentTeam + 1) % 3);
 			updateFog();
 		}
