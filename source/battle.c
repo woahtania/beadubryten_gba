@@ -99,14 +99,12 @@ void calculateVisibleTiles(int team)
                 {
                     for (int vy = r - a; vy >= 0; vy--)
                     {
-                        setTilevisible(y + vy, x + vx);
-                        setTilevisible(y - vy, x + vx);
-                        setTilevisible(y + vy, x - vx);
-                        setTilevisible(y - vy, x - vx);
+                        setTilevisible(x + vx, y + vy);
+                        setTilevisible(x + vx, y - vy);
+                        setTilevisible(x - vx, y + vy);
+                        setTilevisible(x - vx, y - vy);
                     }
                 }
-                int vx = a;
-                int vy = r - a;
             }
 
         }
