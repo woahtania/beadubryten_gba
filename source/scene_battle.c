@@ -30,7 +30,6 @@
 
 #define UTIL_SPRITE_ID(i) (MAX_UNITS * 6) + i
 
-
 int controlStatus = CONTROL_BATTLEFIELD;
 
 bool visibleMapTiles[MAP_W * MAP_H];
@@ -449,6 +448,8 @@ void sc_battle_tick()
 	{
 		b_hit = false;
 		controlStatus = CONTROL_BATTLEFIELD;
+		if (cursor.selectedUnitForMovement != -1)
+			loadedUnits[cursor.selectedUnitForMovement].isVisibleThisTurn = true;
 		cursor.selectedUnitForAtk = -1;
 		cursor.selectedUnitForMovement = -1;
 		cursor.selectedUnitForFrames = 0;
