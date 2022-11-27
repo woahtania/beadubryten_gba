@@ -180,7 +180,7 @@ void loadUnits(struct UnitSpawn *spawns)
     for (int i = 0; i < MAX_UNITS * 3; i++)
     {
         struct UnitSpawn us = *(spawns + i);
-        loadedUnits[i] = (struct MUnit){us.type, 8, 0, true, false, us.x, us.y};
+        loadedUnits[i] = (struct MUnit){us.type, allUnits[us.type].stats[BUFF_STRENGTH], 0, true, false, us.x, us.y};
         // if(us.type == 2)
         // return;
     }
