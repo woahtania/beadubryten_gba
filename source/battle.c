@@ -200,12 +200,15 @@ bool moveUnitTo(int unitID, int x, int y)
 
     int totalDistance = abs(xDist + yDist);
     int speedBuff = 0;
+    int movementRefund = 0; // used for draig
 
     while (xDist != 0)
     {
         struct Tile tile = allTiles[mapTiles[(curr.y * MAP_W) + (curr.x + xDist)] - 1];
         if (u.type != TYPE_AIR && tile.type == TYPE_AIR)
             return false;
+        if (tile.type == TYPE_AIR && u.isSignatureUnit && u.team == TEAM_CYMRU)
+            movementRefund++;
         if (tile.buffType == BUFF_SPEED)
         {
             if (tile.team == u.team)
@@ -224,6 +227,8 @@ bool moveUnitTo(int unitID, int x, int y)
         struct Tile tile = allTiles[mapTiles[((curr.y + yDist) * MAP_W) + (curr.x)] - 1];
         if (u.type != TYPE_AIR && tile.type == TYPE_AIR)
             return false;
+        if (tile.type == TYPE_AIR && u.isSignatureUnit && u.team == TEAM_CYMRU)
+            movementRefund++;
         if (tile.buffType == BUFF_SPEED)
         {
             if (tile.team == u.team)
@@ -239,13 +244,14 @@ bool moveUnitTo(int unitID, int x, int y)
     if (speedBuff != 0)
         speedBuff = (curr.movement / speedBuff) / 2;
 
-    if (totalDistance > loadedUnits[unitID].movement + speedBuff)
+    if (totalDistance > loadedUnits[unitID].movement + speedBuff + movementRefund)
     {
         return false;
     }
     loadedUnits[unitID].x = x;
     loadedUnits[unitID].y = y;
-    loadedUnits[unitID].movement -= totalDistance;
+    loadedUnits[unitID].movement -= totalDistance - movementRefund;
+    loadedUnits[unitID].movement = clamp(loadedUnits[unitID].movement, 0, 8);
     calculateVisibleTiles(allUnits[loadedUnits[unitID].type].team);
     return true;
 }
