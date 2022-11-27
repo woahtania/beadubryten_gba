@@ -127,7 +127,10 @@ void updateUnits() {
 		// Set position based on unit position
 		// TODO: this needs to account for camera position
 		// TODO: Needs to check the bounds of the screen as overflow will cause offscreen units to be rendered
-		obj_set_pos(&unit_objs[i], loadedUnits[i].x * 32 - (cursor.camX), loadedUnits[i].y * 32 - (cursor.camY));
+		int obj_x = loadedUnits[i].x * 16 - (cursor.camX);
+		int obj_y = loadedUnits[i].y * 16 - (cursor.camY);
+		if (obj_x > -16 && obj_x <= SCREEN_WIDTH && obj_y > -16 && obj_y <= SCREEN_HEIGHT) {
+			obj_set_pos(&unit_objs[i], obj_x, obj_y);
 		// (un)hide unit based on visible status
 		if (loadedUnits[i].isVisibleThisTurn) {
 			// Set regular rendering mode
@@ -136,6 +139,11 @@ void updateUnits() {
 			// Set disabled rendering mode
 			obj_hide(&unit_objs[i]);
 		}
+		}
+		else { 
+			obj_hide(&unit_objs[i]);
+		}
+
 	}
 	// Copy all unit objs to vram
 	obj_copy(obj_mem, unit_objs, 128);
