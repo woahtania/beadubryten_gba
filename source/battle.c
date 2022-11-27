@@ -181,6 +181,23 @@ bool moveUnitTo(int unitID, int x, int y)
     int xDist = x - curr.x;
     int yDist = y - curr.y;
 
+    if (u.isSignatureUnit && u.team == TEAM_SCOTLAND)
+    {
+        // nessy go hog wild
+        if (visibleMapTiles[(y * MAP_W) + x])
+        {
+            struct Tile tile = allTiles[mapTiles[(y * MAP_W) + x] - 1];
+            if (tile.type == TYPE_WATER)
+            {
+                loadedUnits[unitID].x = x;
+                loadedUnits[unitID].y = y;
+                loadedUnits[unitID].movement = 0;
+
+                return true;
+            }
+        }
+    }
+
     int totalDistance = abs(xDist + yDist);
     int speedBuff = 0;
 
