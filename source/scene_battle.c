@@ -81,7 +81,7 @@ void initUnits() {
 		obj_set_pos(&unit_objs[MAX_UNITS * 3 + i], 0, 0);
 	}
 
-	obj_set_attr(&unit_objs[UTIL_SPRITE_ID(0)], ATTR0_SQUARE | ATTR0_8BPP, ATTR1_SIZE_16, ATTR2_PALBANK(0) | ATTR2_PRIO(0) | 12 * 8);
+	obj_set_attr(&unit_objs[UTIL_SPRITE_ID(0)], ATTR0_SQUARE | ATTR0_8BPP, ATTR1_SIZE_16, ATTR2_PALBANK(0) | ATTR2_PRIO(1) | 12 * 8);
 	obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], 80, 30);
 
 	obj_copy(obj_mem, unit_objs, 128);
