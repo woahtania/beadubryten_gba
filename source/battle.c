@@ -152,6 +152,7 @@ bool moveUnitTo(int unitID, int x, int y)
     }
     loadedUnits[unitID].x = x;
     loadedUnits[unitID].y = y;
+    loadedUnits[unitID].movement -= xDist + yDist;
     calculateVisibleTiles(allUnits[loadedUnits[unitID].type].team);
     return true;
 }

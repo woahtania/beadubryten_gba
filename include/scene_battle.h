@@ -23,6 +23,9 @@ struct Cursor{
 
     // held frames for up down left right
     int hf_l, hf_r, hf_u, hf_d;
+
+    int selectedUnitForMovement;
+    int selectedUnitForFrames;
 };
 
 #endif

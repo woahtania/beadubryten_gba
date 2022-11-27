@@ -151,6 +151,7 @@ void updateUnits() {
 
 void sc_battle_init()
 {
+	cursor.selectedUnitForMovement = -1;
 	// Set Mode1 (4 backgrounds), enable bg1
     REG_DISPCNT = DCNT_MODE1 | DCNT_BG0 | DCNT_OBJ | DCNT_OBJ_1D;
 
@@ -293,13 +294,59 @@ void updateCamera() {
 
 void sc_battle_tick()
 {
+	if (key_hit(KEY_A))
+	{
+		if (cursor.selectedUnitForMovement == -1)
+		{
+			for (int i = 0; i < MAX_UNITS * 3; i++)
+			{
+				struct MUnit mu = loadedUnits[i];
+				if (mu.x == cursor.x && mu.y == cursor.y)
+				{
+					if (mu.movement > 0)
+					{
+						cursor.selectedUnitForMovement = i;
+					}
+				}
+			}
+		}
+		else
+		{
+			if (moveUnitTo(cursor.selectedUnitForMovement, cursor.x, cursor.y))
+			{
+				loadedUnits[cursor.selectedUnitForMovement].isVisibleThisTurn = true;
+				cursor.selectedUnitForMovement = -1;
+			}
+			else
+			{
+				// play beep noise because it didnt happen
+			}
+		}
+	}
 
+	if (cursor.selectedUnitForMovement != -1)
+	{
+		cursor.selectedUnitForFrames++;
+		if (cursor.selectedUnitForFrames % 60 < 30)
+		{
+			loadedUnits[cursor.selectedUnitForMovement].isVisibleThisTurn = false;
+		}
+		else
+		{
+			loadedUnits[cursor.selectedUnitForMovement].isVisibleThisTurn = true;
+		}
+	}
+	else
+	{
+		cursor.selectedUnitForFrames = 0;
+	}
 }
 
 bool flag_display = false;
 
 void sc_battle_complete() {
-	if (key_hit(KEY_A)) {
+	if (key_hit(KEY_START))
+	{
 		if(!flag_display) {
 			// Hide all sprites
 			for(int i = 0; i < MAX_UNITS * 3; i++) {
@@ -309,7 +356,7 @@ void sc_battle_complete() {
 			// Reset camera
 			REG_BG0HOFS = 0;
 			REG_BG0VOFS = 0;
-			cursor = (struct Cursor){0,0,0,0,0,0,0,0,0,0};
+			cursor = (struct Cursor){0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1};
 			// Show flag
 			switch (currentTeam)
 			{
