@@ -2,24 +2,25 @@
 #include "battle.h"
 
 struct MUnit loadedUnits[MAX_UNITS * 3];
+int mapTiles[MAP_W * MAP_H];
 int currentTeam;
 
 const struct Tile allTiles[12] = {
-    {TEAM_NONE, TYPE_LAND, BUFF_NONE, 0, "Plains"},
-    {TEAM_NONE, TYPE_WATER, BUFF_NONE, 0, "Sea"},
-    {TEAM_NONE, TYPE_AIR, BUFF_NONE, 0, "Mountains"},
-
     {TEAM_ENGLAND, TYPE_LAND, BUFF_STRENGTH, 1, "Castle"},
     {TEAM_ENGLAND, TYPE_WATER, BUFF_SPEED, 2, "River"},
     {TEAM_ENGLAND, TYPE_AIR, BUFF_SIGHT, 1, "Pennine"},
+
+    {TEAM_SCOTLAND, TYPE_LAND, BUFF_SPEED, 1, "Bog"},
+    {TEAM_SCOTLAND, TYPE_WATER, BUFF_SIGHT, 1, "Loch"},
+    {TEAM_SCOTLAND, TYPE_AIR, BUFF_STRENGTH, 2, "Highland"},
 
     {TEAM_CYMRU, TYPE_LAND, BUFF_SPEED, 1, "Valley"},
     {TEAM_CYMRU, TYPE_WATER, BUFF_STRENGTH, 1, "Waterfall"},
     {TEAM_CYMRU, TYPE_AIR, BUFF_SIGHT, 2, "Mountain Range"},
 
-    {TEAM_SCOTLAND, TYPE_LAND, BUFF_SPEED, 1, "Bog"},
-    {TEAM_SCOTLAND, TYPE_WATER, BUFF_SIGHT, 1, "Loch"},
-    {TEAM_SCOTLAND, TYPE_AIR, BUFF_STRENGTH, 2, "Highland"}};
+    {TEAM_NONE, TYPE_AIR, BUFF_NONE, 0, "Mountains"},
+    {TEAM_NONE, TYPE_LAND, BUFF_NONE, 0, "Plains"},
+    {TEAM_NONE, TYPE_WATER, BUFF_NONE, 0, "Sea"}};
 
 const struct Unit allUnits[12] = {
     {"Y Ddraig Goch", TEAM_CYMRU, TYPE_AIR,
@@ -143,10 +144,53 @@ void startTurnFor(int team)
 
 bool moveUnitTo(int unitID, int x, int y)
 {
-    int xDist = abs(x - loadedUnits[unitID].x);
-    int yDist = abs(y - loadedUnits[unitID].y);
+    struct MUnit curr = loadedUnits[unitID];
+    struct Unit u = allUnits[curr.type];
+    int xDist = x - curr.x;
+    int yDist = y - curr.y;
 
-    if (xDist + yDist > loadedUnits[unitID].movement)
+    int totalDistance = abs(xDist + yDist);
+    int speedBuff = 0;
+
+    while (xDist != 0)
+    {
+        struct Tile tile = allTiles[mapTiles[(curr.y * MAP_W) + (curr.x + xDist)] - 1];
+        if (u.type != TYPE_AIR && tile.type == TYPE_AIR)
+            return false;
+        if (tile.buffType == BUFF_SPEED)
+        {
+            if (tile.team == u.team)
+                speedBuff += tile.buffStrength;
+            else
+                speedBuff -= tile.buffStrength;
+        }
+        if (xDist < 0)
+            xDist++;
+        if (xDist > 0)
+            xDist--;
+    }
+
+    while (yDist != 0)
+    {
+        struct Tile tile = allTiles[mapTiles[((curr.y + yDist) * MAP_W) + (curr.x)] - 1];
+        if (u.type != TYPE_AIR && tile.type == TYPE_AIR)
+            return false;
+        if (tile.buffType == BUFF_SPEED)
+        {
+            if (tile.team == u.team)
+                speedBuff += tile.buffStrength;
+            else
+                speedBuff -= tile.buffStrength;
+        }
+        if (yDist < 0)
+            yDist++;
+        if (yDist > 0)
+            yDist--;
+    }
+    if (speedBuff != 0)
+        speedBuff = (curr.movement / speedBuff) / 2;
+
+    if (xDist + yDist > loadedUnits[unitID].movement + speedBuff)
     {
         return false;
     }
@@ -181,7 +225,5 @@ void loadUnits(struct UnitSpawn *spawns)
     {
         struct UnitSpawn us = *(spawns + i);
         loadedUnits[i] = (struct MUnit){us.type, allUnits[us.type].stats[BUFF_STRENGTH], 0, true, false, us.x, us.y};
-        // if(us.type == 2)
-        // return;
     }
 }
