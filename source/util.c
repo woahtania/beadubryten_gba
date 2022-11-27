@@ -18,4 +18,5 @@ int lerp(int num, int target, int delta)
 
     if (num > target - (delta * 2) && num < target + (delta * 2))
         return target;
+    return num;
 }
