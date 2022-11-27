@@ -333,12 +333,12 @@ int hasTeamWon()
         if (u.isSignatureUnit && mu.health >= 1)
             teamsWithSignature[u.team] = true;
     }
-    if (teamsWithSignature[0] && !teamsWithSignature[1] && !teamsWithSignature[2])
-        return 0;
-    if (!teamsWithSignature[0] && teamsWithSignature[1] && !teamsWithSignature[2])
-        return 1;
-    if (!teamsWithSignature[0] && !teamsWithSignature[1] && teamsWithSignature[2])
-        return 2;
+    if (teamsWithSignature[TEAM_ENGLAND] && !teamsWithSignature[TEAM_CYMRU] && !teamsWithSignature[TEAM_SCOTLAND])
+        return TEAM_ENGLAND;
+    if (!teamsWithSignature[TEAM_ENGLAND] && teamsWithSignature[TEAM_CYMRU] && !teamsWithSignature[TEAM_SCOTLAND])
+        return TEAM_CYMRU;
+    if (!teamsWithSignature[TEAM_ENGLAND] && !teamsWithSignature[TEAM_CYMRU] && teamsWithSignature[TEAM_SCOTLAND])
+        return TEAM_SCOTLAND;
 
     return -1;
 }

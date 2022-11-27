@@ -11,6 +11,8 @@ extern struct Cursor cursor;
 
 extern int controlStatus;
 
+extern int teamWon;
+
 void sc_battle_init();
 
 void sc_battle_tick();

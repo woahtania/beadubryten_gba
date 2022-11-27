@@ -508,14 +508,15 @@ void sc_battle_tick()
 }
 
 bool flag_display = false;
+int teamWon = -1;
 
 void sc_battle_complete() {
 	if ((key_hit(KEY_START) && controlStatus == CONTROL_BATTLEFIELD) || frame1 || (controlStatus == CONTROL_ENDTURN && key_hit(KEY_A)))
 	{
-		int teamWon = hasTeamWon();
+		teamWon = hasTeamWon();
 		if (teamWon != -1)
 		{
-			// change to victory screen
+			switchScene(SCENE_VICTORY);
 			return;
 		}
 		frame1 = false;
