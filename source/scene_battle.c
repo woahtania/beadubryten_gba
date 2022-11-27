@@ -309,6 +309,7 @@ void sc_battle_complete() {
 			// Reset camera
 			REG_BG0HOFS = 0;
 			REG_BG0VOFS = 0;
+			cursor = (struct Cursor){0,0,0,0,0,0,0,0,0,0};
 			// Show flag
 			switch (currentTeam)
 			{
