@@ -246,6 +246,7 @@ bool attackUnit(int unitID, int targetUnitID)
         loadedUnits[targetUnitID].health = clamp(target.health, 0, 10);
         if (loadedUnits[targetUnitID].health <= 0)
             loadedUnits[targetUnitID].isVisibleThisTurn = false;
+        loadedUnits[targetUnitID].hasAttackedThisTurn = true;
         return true;
     }
     return false;
