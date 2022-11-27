@@ -361,9 +361,8 @@ void sc_battle_complete() {
 		if(!flag_display) {
 			// Hide all sprites
 			for(int i = 0; i < MAX_UNITS * 3; i++) {
-				obj_hide(&unit_objs[i]);
+				loadedUnits[i].isVisibleThisTurn = false;
 			}
-			obj_copy(obj_mem, unit_objs, MAX_UNITS * 3);
 			// Reset camera
 			REG_BG0HOFS = 0;
 			REG_BG0VOFS = 0;
