@@ -41,6 +41,16 @@ size_t tile2MapId(size_t tile_x, size_t tile_y)
 OBJ_ATTR unit_objs[128];
 struct Cursor cursor;
 
+int health2TileID(int health) {
+	// If unit is dead 
+	if (health <= 0) {
+		// Return last sprite (which should be blank)
+		return ATTR2_ID_MASK - 1;
+	} 
+
+	return (13 * 8) + ((health-1) * 2);
+}
+
 void initUnits() {
 	// Load the spritesheet
 	memcpy(&tile8_mem[CHARBLOCK_UNIT][0], spritesTiles, spritesTilesLen);
