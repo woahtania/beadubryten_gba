@@ -284,14 +284,17 @@ void procKey(int key, int *frameVal, int *changeVal, int delta)
 }
 
 void updateCamera() {
+	// Store the old position of the cursor
 	int oldX = cursor.x;
 	int oldY = cursor.y;
 
+	// Update the cursor's position based on user input
 	procKey(KEY_DOWN, &cursor.hf_d, &cursor.y, 1);
 	procKey(KEY_UP, &cursor.hf_u, &cursor.y, -1);
 	procKey(KEY_LEFT, &cursor.hf_l, &cursor.x, -1);
 	procKey(KEY_RIGHT, &cursor.hf_r, &cursor.x, 1);
 
+	// If in "unit attack" mode, limit cursor movement to within a certain distance of the selected unit
 	if (controlStatus == CONTROL_UNITATK)
 	{
 		struct MUnit mu = loadedUnits[cursor.selectedUnitForAtk];
@@ -300,15 +303,19 @@ void updateCamera() {
 		cursor.y = clamp(cursor.y, mu.y - atkDist, mu.y + atkDist + 1);
 	}
 
+	// Ensure the cursor stays within the bounds of the map
 	cursor.x = clamp(cursor.x, 0, MAP_W);
 	cursor.y = clamp(cursor.y, 0, MAP_H );
 
+	// If the cursor's position has changed, play a sound effect
 	if (cursor.x != oldX || cursor.y != oldY) {
 		playSfx(SFX_CURSOR_CLICK);
 	}
-	
+
+	// Update the position of the sprite object based on the cursor and camera positions
 	obj_set_pos(&unit_objs[UTIL_SPRITE_ID(0)], cursor.x * 16 - cursor.camX, cursor.y * 16 - cursor.camY);
 
+	// Calculate the position of the cursor on the screen, relative to the camera
 	int cursorScreenPosX;
 	int camX = cursor.camX / 16;
 	do
@@ -323,6 +330,7 @@ void updateCamera() {
 		camX++;
 	} while (cursorScreenPosX > 11);
 
+	// Calculate the target x and y positions of the camera
 	cursor.targetCamX = clamp(camX * 16, 0, 272);
 
 	int diff = abs(cursor.camX - cursor.targetCamX);
@@ -334,10 +342,13 @@ void updateCamera() {
 	else
 		delta = 4;
 
+	// Smoothly move the camera towards its target position
 	cursor.camX = lerp(cursor.camX, cursor.targetCamX, delta);
 
 	int cursorScreenPosY;
 	int camY = cursor.camY / 16;
+
+	// Calculate the position of the cursor on the screen, relative to the camera
 	do
 	{
 		cursorScreenPosY = cursor.y - camY;
@@ -350,10 +361,16 @@ void updateCamera() {
 		camY++;
 	} while (cursorScreenPosY > 8);
 
+	// Calculate the target y position of the camera
 	cursor.targetCamY = clamp(camY * 16, 0, 352);
 
+	// Calculate the difference between the current and target camera positions
 	diff = abs(cursor.camY - cursor.targetCamY);
+
+	// Initialize the "delta" variable to 1
 	delta = 1;
+
+	// Determine the value of "delta" based on the value of "diff"
 	if (diff < 24)
 		delta = 1;
 	else if (diff < 48)
@@ -361,8 +378,10 @@ void updateCamera() {
 	else
 		delta = 4;
 
+	// Smoothly move the camera towards its target position
 	cursor.camY = lerp(cursor.camY, cursor.targetCamY, delta);
 
+	// If the "instaCamera" flag is set, immediately set the camera's position to the target position
 	if (instaCamera)
 	{
 		cursor.camX = cursor.targetCamX;
@@ -370,6 +389,7 @@ void updateCamera() {
 		instaCamera = false;
 	}
 
+	// Update the hardware registers that control the position of the background layer
 	REG_BG1HOFS = cursor.camX;
 	REG_BG1VOFS = cursor.camY;
 }
